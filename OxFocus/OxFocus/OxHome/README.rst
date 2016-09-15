@@ -1,1 +1,1 @@
-The root directory of regular files.
+The root directory of regular resources.

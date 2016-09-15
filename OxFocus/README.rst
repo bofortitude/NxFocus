@@ -1,1 +1,1 @@
-The root directory of non-program files.
+The root directory of non-program resources.

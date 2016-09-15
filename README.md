@@ -1,3 +1,3 @@
 # NxFocus
 
-Unified system of files.
+Unified system of resources.
