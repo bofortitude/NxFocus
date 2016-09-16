@@ -6,7 +6,8 @@ import sys
 
 import NxRequests
 from .. import NxFiles
-from ....NxEtc.NxPublicConfig.NxPredefined import PreDefault as PredefinedDefault
+from ....NxEtc.NxPublic.NxPredefault import Default
+
 import logging
 
 
@@ -33,7 +34,7 @@ class WechatActive():
         else:
             #upperPath = NxFiles.getUpperPath(scriptPath)
             #self.accessTokenStoragePath = upperPath+'/ExchangeData'
-            self.accessTokenStoragePath = PredefinedDefault.NxRunPath
+            self.accessTokenStoragePath = Default.NxSanfranRunPath
         self.accessTokenFile = self.accessTokenStoragePath+'/'+self.accessTokenFileName
         self.accessTokenDict = None
         self.sender = NxRequests.NxRequests()

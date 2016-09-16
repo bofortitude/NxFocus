@@ -4,6 +4,7 @@ import telnetlib
 import time
 import os
 import sys
+import logging
 
 
 class TelnetCommandLine:
@@ -81,6 +82,80 @@ class TelnetCommandLine:
     def re_login(self):
         self.telnet_obj.close()
         self.login()
+
+
+class TelCmdLine():
+    def __init__(self, adc_ip, adc_port=23, username='admin', passwd='', expect_string='# ', logger=None):
+
+        self.adc_ip = adc_ip
+        self.adc_port = adc_port
+        self.username = username
+        self.passwd = passwd
+        self.expect_string = expect_string
+        if logger is None:
+            self.logger = logging.getLogger()
+        else:
+            self.logger = logger
+        self.telnet_obj = telnetlib.Telnet()
+        self.login()
+
+    def login(self):
+        self.logger.info('')
+        self.logger.info('Try to connect to "' + str(self.adc_ip) + '" ...')
+        self.telnet_obj.close()
+        self.telnet_obj.open(self.adc_ip, port=self.adc_port, timeout=10)
+        self.logger.info('The connection has been established.')
+        read_content = self.telnet_obj.read_until('login: ')
+        self.logger.info(str(read_content.rstrip()))
+        self.telnet_obj.write(self.username + '\n')
+        read_content = self.telnet_obj.read_until('Password: ')
+        self.logger.info(str(read_content.rstrip()))
+        self.telnet_obj.write(self.passwd + '\n')
+        read_content = self.telnet_obj.read_until(self.expect_string, timeout=10)
+        self.logger.info(str(read_content.rstrip()))
+
+    def run_cmd(self, command):
+        try:
+            self.telnet_obj.write(command + '\n')
+            receivedMsg = self.telnet_obj.read_until(self.expect_string, timeout=10).rstrip()
+            self.logger.info(str(receivedMsg))
+        except:
+            self.logger.info('')
+            self.logger.info('Something wrong while running the command "' + command + '"!!!')
+            raise StandardError
+
+    def run_cmd_file(self, file_name):
+        self.logger.info('')
+        self.logger.info('Start to run the file "' + str(file_name) + '" ...')
+        if not os.path.exists(file_name):
+            self.logger.info('The file "' + str(file_name) + '" doesn\'t exist, nothing to do!!!')
+            return
+        my_file = open(file_name, 'r')
+        file_lines = my_file.readlines()
+        my_file.close()
+        for i in file_lines:
+            self.run_cmd(i.strip())
+        self.logger.info('')
+        self.logger.info('The file "' + file_name + '" has been run over.')
+
+    def return_root_view(self):
+        self.telnet_obj.write('\n')
+        read_content = self.telnet_obj.read_until(self.expect_string, timeout=10).rstrip()
+        self.logger.info(str(read_content))
+        if read_content.find(') ' + self.expect_string.rstrip()) == -1:
+            return
+        for i in xrange(10):
+            self.telnet_obj.write('\x03')  # send Ctrl-c combo
+            read_content = self.telnet_obj.read_until(self.expect_string, timeout=10).rstrip()
+            self.logger.info(str(read_content))
+            if read_content.find(') ' + self.expect_string.rstrip()) == -1:
+                return
+        self.re_login()
+
+    def re_login(self):
+        self.telnet_obj.close()
+        self.login()
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:

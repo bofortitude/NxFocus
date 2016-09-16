@@ -10,9 +10,6 @@ from ....NxLib.requests.adapters import HTTPAdapter
 
 
 
-
-
-
 class SourceAddressAdapter(HTTPAdapter):
     def __init__(self, source_address, **kwargs):
         self.source_address = source_address

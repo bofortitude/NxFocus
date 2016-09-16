@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from TelnetCommandLine import TelnetCommandLine
+from TelnetCommandLine import TelCmdLine
 
 
 
@@ -10,7 +10,7 @@ class AdvancedCLI():
         # current_vdom:
         # None -> Not specified -> No vdom
         # global -> global
-        self.cli_obj = TelnetCommandLine(adc_ip, adc_port=adc_port, username=username, passwd=passwd,
+        self.cli_obj = TelCmdLine(adc_ip, adc_port=adc_port, username=username, passwd=passwd,
                                          expect_string=expect_string)
         self.current_vdom = current_vdom
         if self.current_vdom == None:
