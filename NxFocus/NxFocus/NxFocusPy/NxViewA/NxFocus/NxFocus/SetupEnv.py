@@ -2,7 +2,7 @@
 
 import sys
 #from NxSanfran.NxPrjct.TestingMate.SetupEnvKifer.SetupEnv import setupEnv
-from NxSanfran.NxPrjct.TestingMate.SetupEnvKifer import SetupEnv
+import NxSanfran.NxPrjct.TestingMate.SetupEnvKifer.SetupEnv
 from NxSanfran.NxUsr.NxLib.NxLogging import setSimpleLogging
 
 
