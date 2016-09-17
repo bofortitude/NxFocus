@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys
-from NxSanfran.NxPrjct.TestingMate.SetupEnvKifer.SetupEnvK import *
+from NxSanfran.NxPrjct.NxTestingMate.SetupEnvKifer.SetupEnvK import setupEnv
 
 from NxSanfran.NxUsr.NxLib.NxLogging import setSimpleLogging
 
