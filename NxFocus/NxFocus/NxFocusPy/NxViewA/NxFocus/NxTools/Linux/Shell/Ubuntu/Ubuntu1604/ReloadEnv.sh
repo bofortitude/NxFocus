@@ -51,8 +51,14 @@ for i in $interfaceList
 echo "[Flushing is over.]"
 echo ""
 echo "[Starting to restart service networking...]"
-service networking restart
+systemctl restart networking
+#service networking restart
 echo "[The networking has been restarted.]"
+echo ""
+echo "[Add the 127.0.0.1/8 to lo ...]"
+ip address add 127.0.0.1/8 dev lo
+
+
 echo ""
 echo "[Run the file \"/etc/rc.local\".]"
 sh /etc/rc.local
