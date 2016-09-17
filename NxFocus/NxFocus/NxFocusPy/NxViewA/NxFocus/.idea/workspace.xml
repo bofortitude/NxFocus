@@ -20,7 +20,7 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="SetupEnv.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="SetupEnv.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NxFocus/NxSanfran/NxPrjct/TestingMate/SetupEnvKifer/SetupEnv.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="450">
@@ -32,14 +32,24 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SetupEnv.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SetupEnv.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/NxFocus/SetupEnv.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="18" column="15" selection-start-line="18" selection-start-column="15" selection-end-line="18" selection-end-column="15" />
+            <state relative-caret-position="315">
+              <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
               <folding>
                 <element signature="e#19#29#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/NxFocus/NxSanfran/NxPrjct/TestingMate/SetupEnvKifer/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -70,6 +80,7 @@
         <option value="$PROJECT_DIR$/NxFocus/NxSanfran/NxPrjct/TestingMate/SetupEnvKifer/ClearServerNetConfig.py" />
         <option value="$PROJECT_DIR$/NxFocus/SetupEnv.py" />
         <option value="$PROJECT_DIR$/NxFocus/NxSanfran/NxPrjct/TestingMate/SetupEnvKifer/SetupEnv.py" />
+        <option value="$PROJECT_DIR$/NxFocus/NxSanfran/NxPrjct/TestingMate/SetupEnvKifer/__init__.py" />
       </list>
     </option>
   </component>
@@ -692,13 +703,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NxFocus/SetupEnv.py">
+    <entry file="file://$PROJECT_DIR$/NxFocus/NxSanfran/NxPrjct/TestingMate/SetupEnvKifer/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" column="15" selection-start-line="18" selection-start-column="15" selection-end-line="18" selection-end-column="15" />
-          <folding>
-            <element signature="e#19#29#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -706,6 +715,16 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="450">
           <caret line="30" column="46" selection-start-line="30" selection-start-column="46" selection-end-line="30" selection-end-column="46" />
+          <folding>
+            <element signature="e#19#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NxFocus/SetupEnv.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
           <folding>
             <element signature="e#19#29#0" expanded="true" />
           </folding>
