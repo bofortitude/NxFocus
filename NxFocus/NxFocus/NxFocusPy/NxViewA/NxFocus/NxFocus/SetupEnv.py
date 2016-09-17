@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 from NxSanfran.NxPrjct.TestingMate.SetupEnvKifer.SetupEnv import *
 from NxSanfran.NxUsr.NxLib.NxLogging import setSimpleLogging
 
