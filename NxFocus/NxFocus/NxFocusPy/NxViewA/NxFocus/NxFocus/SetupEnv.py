@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 import sys
-from NxSanfran.NxPrjct.TestingMate.SetupEnvKifer.SetupEnv import setupEnv
+#from NxSanfran.NxPrjct.TestingMate.SetupEnvKifer.SetupEnv import setupEnv
+from NxSanfran.NxPrjct.TestingMate.SetupEnvKifer import SetupEnv
 from NxSanfran.NxUsr.NxLib.NxLogging import setSimpleLogging
 
 
@@ -29,7 +30,8 @@ cmd1 = ip route add 200.1.1.0/24 via 10.78.1.1
         print ''
         exit()
 
-    setupEnv(sys.argv[1])
+
+    SetupEnv.setupEnv(sys.argv[1])
 
 
 
