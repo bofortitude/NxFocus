@@ -35,9 +35,9 @@ if [ -f "$BindPath""$BaiducomFileName" ]; then
 fi
 cp "$BindPath""$DbLocalFileName" "$BindPath""$BaiducomFileName" 
 echo "$BindPath""$DbLocalFileName"" has been copied to ""$BindPath""$BaiducomFileName ." 
-sed -i 's/@\tIN\tNS\tlocalhost.//' "$BindPath""$BaiducomFileName"
-sed -i 's/@\tIN\tA\t127.0.0.1//' "$BindPath""$BaiducomFileName"
-sed -i 's/@\tIN\tAAAA\t::1//' "$BindPath""$BaiducomFileName"
+sed -i "s/@\tIN\tNS\tlocalhost.//" "$BindPath""$BaiducomFileName"
+sed -i "s/@\tIN\tA\t127.0.0.1//" "$BindPath""$BaiducomFileName"
+sed -i "s/@\tIN\tAAAA\t::1//" "$BindPath""$BaiducomFileName"
 echo -e "@\tIN\tNS\tns.baidu.com." >> "$BindPath""$BaiducomFileName"
 echo -e "ns\tIN\tA\t$dstIpAddress" >> "$BindPath""$BaiducomFileName"
 echo -e "www\tIN\tA\t$dstIpAddress" >> "$BindPath""$BaiducomFileName"
@@ -46,7 +46,7 @@ echo "" >> "$BindPath""$BaiducomFileName"
 echo -e "ns\tIN\tAAAA\t$dstIpAddressV6" >> "$BindPath""$BaiducomFileName"
 echo -e "www\tIN\tAAAA\t$dstIpAddressV6" >> "$BindPath""$BaiducomFileName"
 echo -e "mail\tIN\tAAAA\t$dstIpAddressV6" >> "$BindPath""$BaiducomFileName"
-sed -i 's/localhost/baidu.com/g' "$BindPath""$BaiducomFileName"
+sed -i "s/localhost/baidu.com/g" "$BindPath""$BaiducomFileName"
 echo "The db.baidu.com file has been recreated over."
 
 
@@ -59,9 +59,9 @@ if [ -f "$BindPath""$AdccomFileName" ]; then
 fi
 cp "$BindPath""$DbLocalFileName" "$BindPath""$AdccomFileName"
 echo "$BindPath""$DbLocalFileName"" has been copied to ""$BindPath""$AdccomFileName ." 
-sed -i 's/@\tIN\tNS\tlocalhost.//' "$BindPath""$AdccomFileName"
-sed -i 's/@\tIN\tA\t127.0.0.1//' "$BindPath""$AdccomFileName"
-sed -i 's/@\tIN\tAAAA\t::1//' "$BindPath""$AdccomFileName"
+sed -i "s/@\tIN\tNS\tlocalhost.//" "$BindPath""$AdccomFileName"
+sed -i "s/@\tIN\tA\t127.0.0.1//" "$BindPath""$AdccomFileName"
+sed -i "s/@\tIN\tAAAA\t::1//" "$BindPath""$AdccomFileName"
 echo -e "@\tIN\tNS\tns.adc.com." >> "$BindPath""$AdccomFileName"
 echo -e "ns\tIN\tA\t$dstIpAddress" >> "$BindPath""$AdccomFileName"
 echo -e "www\tIN\tA\t$dstIpAddress" >> "$BindPath""$AdccomFileName"
@@ -70,13 +70,13 @@ echo "" >> "$BindPath""$AdccomFileName"
 echo -e "ns\tIN\tAAAA\t$dstIpAddressV6" >> "$BindPath""$AdccomFileName"
 echo -e "www\tIN\tAAAA\t$dstIpAddressV6" >> "$BindPath""$AdccomFileName"
 echo -e "mail\tIN\tAAAA\t$dstIpAddressV6" >> "$BindPath""$AdccomFileName"
-sed -i 's/localhost/adc.com/g' "$BindPath""$AdccomFileName"
+sed -i "s/localhost/adc.com/g" "$BindPath""$AdccomFileName"
 echo "The db.adc.com file has been recreated over."
 
 
-sed -i 's/Reply-Message=.*/Reply-Message=$dstIpAddress/g' /etc/freeradius/acct_users
+sed -i "s/Reply-Message=.*/Reply-Message=$dstIpAddress/g" /etc/freeradius/acct_users
 echo "IP address in /etc/freeradius/acct_users has been replaced with $dstIpAddress ."
-sed -i 's/Reply-Message=.*/Reply-Message=$dstIpAddress/g' /etc/freeradius/users
+sed -i "s/Reply-Message=.*/Reply-Message=$dstIpAddress/g" /etc/freeradius/users
 echo "IP address in /etc/freeradius/users has been replaced with $dstIpAddress ."
 
 
