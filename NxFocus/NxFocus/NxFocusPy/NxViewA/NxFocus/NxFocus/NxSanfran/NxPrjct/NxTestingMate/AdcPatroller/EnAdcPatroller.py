@@ -3,7 +3,7 @@
 import logging
 import multiprocessing
 
-from ....NxUsr.NxLib.NxLogging import setSimpleLogging
+from ....NxUsr.NxLib.NxLogging import setSimpleLogging, setConcurrentLogging
 import Arguments
 from ....NxUsr.NxLib import NxFiles
 from BackupConfig import backupAdcConfig
@@ -14,10 +14,13 @@ from BackupConfig import backupAdcConfig
 
 
 def enMain(sysArgsList):
-    setSimpleLogging()
-    logger = logging.getLogger()
     args = Arguments.argument(sysArgsList)
     args.parseArgs()
+    if args.logFile is not None:
+        setConcurrentLogging(logFile=args.logFile)
+    else:
+        setSimpleLogging()
+    logger = logging.getLogger()
 
 
     logger.info('Starting the AdcPatroller...')

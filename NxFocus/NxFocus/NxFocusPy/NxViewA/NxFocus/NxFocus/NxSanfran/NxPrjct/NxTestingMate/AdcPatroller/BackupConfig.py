@@ -5,6 +5,7 @@ import logging
 import time
 from ....NxUsr.NxLib.NxRequests import NxRequests
 from ....NxUsr.NxLib import NxFiles
+from PushInfo import wechat2Me
 
 
 
@@ -59,6 +60,11 @@ User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, l
 '''
 
 
+
+invalidLicenseString = '{"payload":"Invalid VM License"}'
+
+
+
 def httpDownload(url, cookieString, location, isEntireConfig=True,  fileName=None, timeout=60, logger=None):
     if logger is None:
         logger = logging.getLogger()
@@ -94,6 +100,19 @@ def httpDownload(url, cookieString, location, isEntireConfig=True,  fileName=Non
 
         logger.info('Starting to download...')
         response = r.get(url, stream=True)
+        if response.status_code != 200:
+            logger.warning('The status code from ADC is not 200, return False!')
+            #wechat2Me('[AdcPatroller] The status code from ADC is not 200! URL is '+str(url)+' .')
+            return False
+        if not response.content:
+            logger.warning('The response from ADC has no content, return False!')
+            #wechat2Me('[AdcPatroller] The response from ADC has no content! The URL is '+str(url)+' .')
+            return False
+        else:
+            if str(response.content).find(invalidLicenseString) != -1:
+                logger.warning('The response content contains '+invalidLicenseString+' , return False!')
+                return False
+
         with open(location+'/'+fileName, 'wb') as f:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
@@ -103,6 +122,7 @@ def httpDownload(url, cookieString, location, isEntireConfig=True,  fileName=Non
     except Exception as err:
         logger.debug('Downloading meete exception:')
         logger.debug(str(err))
+        return False
 
 
 
@@ -146,7 +166,12 @@ def backupConfig(mgmtIp, location, isEntireConfig=True, username='admin', passwo
     loginSender.addData('password', password)
 
     logger.info('Sending the login request ...')
-    loginResponse = loginSender.post(loginUrl)
+    try:
+        loginResponse = loginSender.post(loginUrl)
+    except Exception as err:
+        logger.warning('Login meets exception:')
+        logger.warning(str(err))
+        return False
     logger.debug('The login response is:')
     logger.debug(str(loginResponse))
     logger.debug('The login cookie is:')
@@ -186,7 +211,6 @@ def backupAdcConfig(mgmtIp, location, interval=7200, directorySize=100000000,
     interval = float(interval)
     directorySize = long(directorySize)
     logger = logging.getLogger()
-    print str(directorySize)
     logger.info('Starting the process to backup the ADC configs...')
     subRootPath = location+'/'+str(mgmtIp)
     fullConfigRootPath = subRootPath+'/'+'fullConfigBackup'

@@ -26,6 +26,7 @@ Notes:
                                  help="Specify the password, default is ''.")
         self.parser.add_argument('-s', '--https', dest='isHttps', action='store_true',
                                  help='Use HTTPS session to ADC once it is specified.')
+        self.parser.add_argument('-l', '--log', dest='logFile', help='Specify the AdcPatroller log file.')
 
         self.parser.add_argument('--directory-size', dest='directorySize', default=100000000,
                                  help='Specify the max directory size, default is 100000000.')
@@ -43,6 +44,7 @@ Notes:
         self.username = self.args.username
         self.password = self.args.password
         self.isHttps = self.args.isHttps
+        self.logFile = self.args.logFile
         self.mgmtPort = self.args.mgmtPort
         self.backupInterval = self.args.backupInterval
         self.directorySize = self.args.directorySize
