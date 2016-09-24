@@ -1,0 +1,236 @@
+#!/usr/bin/python
+
+
+import logging
+import time
+from ....NxUsr.NxLib.NxRequests import NxRequests
+from ....NxUsr.NxLib import NxFiles
+
+
+
+
+
+'''
+login:
+
+General:
+Request URL:http://10.160.41.195/api/user/login
+Request Method:POST
+
+
+request headers:
+
+Accept:application/json, text/javascript, */*; q=0.01
+Accept-Encoding:gzip, deflate
+Accept-Language:en-US,en;q=0.8
+Connection:keep-alive
+Content-Length:34
+Content-Type:application/json; charset=UTF-8
+Cookie:adc_session=%7B%22slim.flash%22%3A%5B%5D%7D
+Host:10.160.41.195
+Origin:http://10.160.41.195
+Referer:http://10.160.41.195/ui/
+User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36
+X-Requested-With:XMLHttpRequest
+
+
+request payload:
+{username: "admin", password: ""}
+
+
+====================================================================================
+backup config:
+
+General:
+Request URL:http://10.160.41.195/api/downloader/config?entire=enable
+Request Method:GET
+
+requests headers:
+Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding:gzip, deflate, sdch
+Accept-Language:en-US,en;q=0.8
+Connection:keep-alive
+Cookie:adc_session=%7B%22slim.flash%22%3A%5B%5D%2C%22user%22%3A%7B%22sid%22%3A777311349%2C%22username%22%3A%22admin%22%7D%2C%22last_access_time%22%3A1474607368%7D
+Host:10.160.41.195
+Referer:http://10.160.41.195/ui/
+Upgrade-Insecure-Requests:1
+User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36
+
+'''
+
+
+def httpDownload(url, cookieString, location, isEntireConfig=True,  fileName=None, timeout=60, logger=None):
+    if logger is None:
+        logger = logging.getLogger()
+    if fileName is None:
+        if isEntireConfig:
+            fileName = 'AdcConfig'+time.strftime('%Y%m%d%H%M%S', time.localtime())+'.tar'
+        else:
+            fileName = 'AdcConfig'+time.strftime('%Y%m%d%H%M%S', time.localtime())
+
+    logger.debug('Checking the location '+str(location))
+    if not NxFiles.isDir(location):
+        logger.debug('The location '+str(location)+' is not a directory, attempting to make it.')
+        NxFiles.makeDirs(location)
+        logger.debug('The location '+str(location)+' has been made.')
+    else:
+        logger.debug('The location '+str(location)+' is a valid directory.')
+
+    if NxFiles.isFile(location+'/'+fileName):
+        logger.warning('The file '+location+'/'+fileName+' exists, delete it now!')
+        NxFiles.removeForce(location+'/'+fileName)
+
+    try:
+        r = NxRequests()
+        r.addCookie('adc_session', cookieString)
+        r.setTimeout(timeout)
+        r.addHeader('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8')
+        r.addHeader('Accept-Encoding', 'gzip, deflate, sdch')
+        r.addHeader('Accept-Language', 'en-US,en;q=0.8')
+        r.addHeader('Connection', 'keep-alive')
+        r.addHeader('Upgrade-Insecure-Requests', '1')
+        r.addHeader('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36')
+        #r.addHeader('referer', refererString)
+
+        logger.info('Starting to download...')
+        response = r.get(url, stream=True)
+        with open(location+'/'+fileName, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        logger.info('The config file has been downloaded to '+location+'/'+fileName+' .')
+
+    except Exception as err:
+        logger.debug('Downloading meete exception:')
+        logger.debug(str(err))
+
+
+
+
+def backupConfig(mgmtIp, location, isEntireConfig=True, username='admin', password='', mgmtPort=None, isHttps=False, logger=None):
+    if logger is None:
+        logger = logging.getLogger()
+    if isHttps:
+        urlPrefix = 'https://'
+        if mgmtPort is None:
+            mgmtPort = 443
+    else:
+        urlPrefix = 'http://'
+        if mgmtPort is None:
+            mgmtPort = 80
+
+    if isEntireConfig:
+        entireOption = 'entire=enable'
+    else:
+        entireOption = 'entire=disable'
+
+
+    logger.info('Start to backup the full config from '+str(mgmtIp)+' ...')
+    loginUrl = urlPrefix+str(mgmtIp)+':'+str(mgmtPort)+'/api/user/login'
+    backupConfigUrl = urlPrefix+str(mgmtIp)+':'+str(mgmtPort)+'/api/downloader/config?'+entireOption
+
+    logger.debug('The login url is: '+str(loginUrl))
+    logger.debug('The backup config url is: '+str(backupConfigUrl))
+
+    logger.debug('Building the login request sender ...')
+    loginSender = NxRequests()
+    loginSender.addHeader('Accept', 'application/json, text/javascript, */*; q=0.01')
+    loginSender.addHeader('Accept-Encoding', 'gzip, deflate')
+    loginSender.addHeader('Accept-Language', 'en-US,en;q=0.8')
+    loginSender.addHeader('Connection', 'keep-alive')
+    loginSender.addHeader('Content-Type', 'application/json; charset=UTF-8')
+    #loginSender.addHeader('Referer', 'http://'+str(mgmtIp)+'/ui/')
+    loginSender.addHeader('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36')
+    loginSender.addHeader('X-Requested-With', 'XMLHttpRequest')
+    loginSender.addData('username', username)
+    loginSender.addData('password', password)
+
+    logger.info('Sending the login request ...')
+    loginResponse = loginSender.post(loginUrl)
+    logger.debug('The login response is:')
+    logger.debug(str(loginResponse))
+    logger.debug('The login cookie is:')
+    logger.debug(str(loginResponse.cookies))
+    loginCookie = loginResponse.cookies['adc_session']
+
+    httpDownload(backupConfigUrl, loginCookie, location,  isEntireConfig=isEntireConfig)
+
+
+
+def checkDirectorySize(path, directorySize):
+    directorySize = long(directorySize)
+    logger = logging.getLogger()
+    if not NxFiles.isDir(path):
+        return
+    logger.debug('The size of directory '+str(path)+' is '+str(NxFiles.dirSize(path)))
+    if NxFiles.dirSize(path) > directorySize:
+        logger.info('The size of ' + str(path) + ' is greater than ' + str(
+            directorySize) + ', apttempting to remove files from early to late.')
+        filesList = NxFiles.sortDir(path)
+        count = 0
+        for i in filesList:
+            NxFiles.removeForce(path + '/' + i)
+            logger.warning('The file ' + str(path + '/' + i) + ' has been removed!')
+            if NxFiles.dirSize(path) <= directorySize:
+                break
+            if count >= 100:
+                break
+            count += 1
+    else:
+        logger.debug('The size of ' + str(path) + ' is lower than ' + str(
+            directorySize))
+
+
+def backupAdcConfig(mgmtIp, location, interval=7200, directorySize=100000000,
+                    username='admin', password='', mgmtPort=None, isHttps=False):
+    interval = float(interval)
+    directorySize = long(directorySize)
+    logger = logging.getLogger()
+    print str(directorySize)
+    logger.info('Starting the process to backup the ADC configs...')
+    subRootPath = location+'/'+str(mgmtIp)
+    fullConfigRootPath = subRootPath+'/'+'fullConfigBackup'
+    plainConfigRootPath = subRootPath+'/'+'plainConfigBackup'
+    if not NxFiles.isDir(fullConfigRootPath):
+        logger.info(str(fullConfigRootPath)+' does not exist, attempting to make it.')
+        NxFiles.makeDirs(fullConfigRootPath)
+    if not NxFiles.isDir(plainConfigRootPath):
+        logger.info(str(plainConfigRootPath)+' does not exist, attempting to make it.')
+        NxFiles.makeDirs(plainConfigRootPath)
+
+    while True:
+        logger.info('Starting new round backup ...')
+        checkDirectorySize(fullConfigRootPath, directorySize)
+        checkDirectorySize(plainConfigRootPath, directorySize)
+
+        try:
+            logger.info('Backup the full config from '+str(mgmtIp)+' ...')
+            backupConfig(mgmtIp, fullConfigRootPath, isEntireConfig=True,
+                                      username=username, password=password, mgmtPort=mgmtPort, isHttps=isHttps)
+            logger.info('Backup the plain config from '+str(mgmtIp)+' ...')
+            backupConfig(mgmtIp, plainConfigRootPath, isEntireConfig=False,
+                                      username=username, password=password, mgmtPort=mgmtPort, isHttps=isHttps)
+
+        except Exception as err:
+            logger.warning('This rounc backup meets exception:')
+            logger.warning(err)
+        logger.info('Sleep ' + str(interval) + 's for next round backup ...')
+        time.sleep(float(interval))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

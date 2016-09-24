@@ -140,6 +140,56 @@ def fileSize(path):
     return os.path.getsize(path)
 
 
+def dirSize(path):
+    if not isDir(path):
+        return False
+    size = 0L
+    for root, dirs, files in os.walk(path):
+        size += sum([os.path.getsize(os.path.join(root, name)) for name in files])
+    return size
+
+
+
+class compare():
+    def __init__(self, path):
+        self.path = path
+    def fromEarlyToLate(self, x, y):
+        stat_x = os.stat(self.path + "/" + x)
+        stat_y = os.stat(self.path + "/" + y)
+        if stat_x.st_ctime < stat_y.st_ctime:
+            return -1
+        elif stat_x.st_ctime > stat_y.st_ctime:
+            return 1
+        else:
+            return 0
+
+    def fromLateToEarly(self, x, y):
+        stat_x = os.stat(self.path + "/" + x)
+        stat_y = os.stat(self.path + "/" + y)
+        if stat_x.st_ctime > stat_y.st_ctime:
+            return -1
+        elif stat_x.st_ctime < stat_y.st_ctime:
+            return 1
+        else:
+            return 0
+
+
+
+def sortDir(path):
+    '''from early to late'''
+    myCompare = compare(path)
+    iterms = os.listdir(path)
+    iterms.sort(myCompare.fromEarlyToLate)
+    return iterms
+
+def sortDirReverse(path):
+    ''' from late to early'''
+    myCompare = compare(path)
+    iterms = os.listdir(path)
+    iterms.sort(myCompare.fromLateToEarly)
+    return iterms
+
+
 
 if __name__ == '__main__':
     pass

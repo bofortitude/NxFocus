@@ -24,15 +24,17 @@ def showHelp():
     print ''
     exit()
 
-def Info4Us(*args, **kwargs):
+def Info4Us(argsList):
     from NxSanfran.NxPrjct.iMer.Info4Us.Info4Us import mainEn
     mainEn()
 
-def checkConnBeijing(*args, **kwargs):
+def checkConnBeijing(argsList):
     from NxSanfran.NxPrjct.iMer.CheckConnectivity.CheckConnToBeijing import mainEn
     mainEn()
 
-
+def Trial(argsList):
+    from NxSanfran.NxPrjct.Labs.Trial import enMain
+    enMain(argsList)
 
 
 
