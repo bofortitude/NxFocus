@@ -15,8 +15,8 @@ from ...NxUsr.NxLib import NxFiles
 
 
 def enMain(argsList):
-    print NxFiles.sortDir('/root/NxFocus/NxFocus')
-    print NxFiles.sortDirReverse('/root/NxFocus/NxFocus')
+    from ..NxTestingMate.AdcPatroller.BackupConfig import getAdcSystemStatus
+    getAdcSystemStatus('10.160.41.193')
 
 
 

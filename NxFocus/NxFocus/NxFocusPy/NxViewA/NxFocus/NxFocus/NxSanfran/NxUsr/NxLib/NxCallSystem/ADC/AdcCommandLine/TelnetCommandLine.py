@@ -119,10 +119,12 @@ class TelCmdLine():
             self.telnet_obj.write(command + '\n')
             receivedMsg = self.telnet_obj.read_until(self.expect_string, timeout=10).rstrip()
             self.logger.info(str(receivedMsg))
+            return receivedMsg
         except:
             self.logger.info('')
             self.logger.info('Something wrong while running the command "' + command + '"!!!')
             raise StandardError
+
 
     def run_cmd_file(self, file_name):
         self.logger.info('')

@@ -28,7 +28,7 @@ def enMain(sysArgsList):
 
     backupProcess = multiprocessing.Process(target=backupAdcConfig, args=(args.adcIp, args.location),
         kwargs={'directorySize':args.directorySize, 'interval':args.backupInterval, 'username':args.username,
-                'password':args.password, 'mgmtPort':args.mgmtPort, 'isHttps':args.isHttps})
+                'password':args.password, 'mgmtPort':args.mgmtPort, 'telnetPort':args.telnetPort, 'isHttps':args.isHttps})
     logger.info('"backupAdcConfig" process has been created.')
     processList.append(backupProcess)
 

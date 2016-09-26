@@ -5,6 +5,7 @@ import logging
 import time
 from ....NxUsr.NxLib.NxRequests import NxRequests
 from ....NxUsr.NxLib import NxFiles
+from ....NxUsr.NxLib.NxCallSystem.ADC.AdcCommandLine.TelnetCommandLine import TelCmdLine
 from PushInfo import wechat2Me
 
 
@@ -205,25 +206,72 @@ def checkDirectorySize(path, directorySize):
         logger.debug('The size of ' + str(path) + ' is lower than ' + str(
             directorySize))
 
+def forceMakeDirectory(path, logger=None):
+    if logger is None:
+        logger = logging.getLogger()
+    if not NxFiles.isDir(path):
+        logger.info(str(path) + ' does not exist, attempting to make it.')
+        NxFiles.makeDirs(path)
+
+
+def getAdcSystemStatus(mgmtIp, telnetPort=23, username='admin', password='', logger=None):
+    '''Return a dict'''
+    statusDict = {}
+    if logger is None:
+        logger = logging.getLogger()
+    logger.debug('Starting to get the ADC system status')
+    adcCli = TelCmdLine(mgmtIp, adc_port=telnetPort, username=username, passwd=password)
+    try:
+        logger.debug('Try to login ADC ...')
+        adcCli.login()
+        logger.debug('Sending command get sys status ...')
+        responseMsg = adcCli.run_cmd('get system status')
+        logger.debug('The response message from ADC is :')
+        logger.debug(str(responseMsg))
+        statusLineList = str(responseMsg).split('\r\n')
+        del statusLineList[0]
+        del statusLineList[-1]
+        del statusLineList[-1]
+        for i in statusLineList:
+            itemList = i.split(':')
+            if len(itemList) >= 2:
+                statusDict[itemList[0].strip()] = itemList[1].strip()
+        logger.debug('The ADC system status dict is: '+str(statusDict)+' .')
+        return statusDict
+    except Exception as err:
+        logger.warning('Getting ADC system status meets exception:')
+        logger.warning(str(err))
+        return False
+
 
 def backupAdcConfig(mgmtIp, location, interval=7200, directorySize=100000000,
-                    username='admin', password='', mgmtPort=None, isHttps=False):
+                    username='admin', password='', mgmtPort=None, telnetPort=23, isHttps=False):
     interval = float(interval)
     directorySize = long(directorySize)
     logger = logging.getLogger()
     logger.info('Starting the process to backup the ADC configs...')
     subRootPath = location+'/'+str(mgmtIp)
-    fullConfigRootPath = subRootPath+'/'+'fullConfigBackup'
-    plainConfigRootPath = subRootPath+'/'+'plainConfigBackup'
-    if not NxFiles.isDir(fullConfigRootPath):
-        logger.info(str(fullConfigRootPath)+' does not exist, attempting to make it.')
-        NxFiles.makeDirs(fullConfigRootPath)
-    if not NxFiles.isDir(plainConfigRootPath):
-        logger.info(str(plainConfigRootPath)+' does not exist, attempting to make it.')
-        NxFiles.makeDirs(plainConfigRootPath)
+
 
     while True:
         logger.info('Starting new round backup ...')
+
+        finalRootPath = subRootPath
+        adcSystemStatusDict = getAdcSystemStatus(mgmtIp, telnetPort=telnetPort, username=username, password=password)
+        if not adcSystemStatusDict:
+            logger.warning('Getting system status meets error, skip making sub directories.')
+        else:
+            if 'Version' in adcSystemStatusDict:
+                platformMark = str(adcSystemStatusDict['Version']).split()[0]
+                versionMark = str(adcSystemStatusDict['Version']).split()[1].replace(',','_')
+                finalRootPath += '/'+platformMark+'/'+versionMark
+            else:
+                logger.warning('"Version" is not in ADC system status dict, skip making sub directories.')
+
+        fullConfigRootPath = finalRootPath + '/' + 'fullConfigBackup'
+        plainConfigRootPath = finalRootPath+ '/' + 'plainConfigBackup'
+        forceMakeDirectory(fullConfigRootPath)
+        forceMakeDirectory(plainConfigRootPath)
         checkDirectorySize(fullConfigRootPath, directorySize)
         checkDirectorySize(plainConfigRootPath, directorySize)
 

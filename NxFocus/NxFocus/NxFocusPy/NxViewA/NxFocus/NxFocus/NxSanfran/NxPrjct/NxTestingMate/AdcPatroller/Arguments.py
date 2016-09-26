@@ -34,6 +34,8 @@ Notes:
                                  help='Specify the backup config interval, default is 7200.')
         self.parser.add_argument('--mgmt-port', dest='mgmtPort',
                                  help="Specify the admin mgmt port.")
+        self.parser.add_argument('--telnet-port', dest='telnetPort', default=23, help='Specify the telnet dst port, default is 23.')
+
 
 
         self.args, self.remaining = self.parser.parse_known_args(self.sysArgsList)
@@ -46,6 +48,7 @@ Notes:
         self.isHttps = self.args.isHttps
         self.logFile = self.args.logFile
         self.mgmtPort = self.args.mgmtPort
+        self.telnetPort = self.args.telnetPort
         self.backupInterval = self.args.backupInterval
         self.directorySize = self.args.directorySize
 
