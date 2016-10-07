@@ -3,10 +3,11 @@
 import logging
 import multiprocessing
 
-from ....NxUsr.NxLib.NxLogging import setSimpleLogging, setConcurrentLogging
-import Arguments
-from ....NxUsr.NxLib import NxFiles
-from BackupConfig import backupAdcConfig
+
+from NxSanfran.NxUsr.NxLib.NxLogging import setSimpleLogging, setConcurrentLogging
+from . import Arguments
+from NxSanfran.NxUsr.NxLib import NxFiles
+from .BackupConfig import backupAdcConfig
 
 
 

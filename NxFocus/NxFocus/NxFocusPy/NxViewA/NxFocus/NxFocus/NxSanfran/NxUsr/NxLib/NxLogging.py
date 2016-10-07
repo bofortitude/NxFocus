@@ -3,9 +3,9 @@
 import logging
 import logging.handlers
 
-from ...NxLib.ConcurrentLogHandler.cloghandler import ConcurrentRotatingFileHandler
+from NxSanfran.NxLib.ConcurrentLogHandler.cloghandler import ConcurrentRotatingFileHandler
 
-import NxFiles
+from . import NxFiles
 
 
 

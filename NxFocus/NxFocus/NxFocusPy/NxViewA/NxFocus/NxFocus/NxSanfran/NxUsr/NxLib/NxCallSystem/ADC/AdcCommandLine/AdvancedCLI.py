@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from TelnetCommandLine import TelCmdLine
+from .TelnetCommandLine import TelCmdLine
 
 
 

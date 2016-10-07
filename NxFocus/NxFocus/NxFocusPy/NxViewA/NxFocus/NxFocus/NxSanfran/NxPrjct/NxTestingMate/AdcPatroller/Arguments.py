@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 
-from ....NxLib import argparse
-from ....NxLib.argparse import RawTextHelpFormatter
+
+from NxSanfran.NxLib import argparse
+from NxSanfran.NxLib.argparse import RawTextHelpFormatter
+
 
 
 class argument():

@@ -4,9 +4,9 @@
 import time
 import sys
 
-import NxRequests
-from .. import NxFiles
-from ....NxEtc.NxPublic.NxPredefault import Default
+from . import NxRequests
+from NxSanfran.NxUsr.NxLib import NxFiles
+from NxSanfran.NxEtc.NxPublic.NxPredefault import Default
 
 import logging
 

@@ -1,0 +1,41 @@
+
+select @@server_id;
+
+
+
+
+drop database if exists testdb;
+
+create database testdb;
+create table testdb.table1(
+table1_id INT NOT NULL AUTO_INCREMENT,
+title VARCHAR(100) NOT NULL,
+author VARCHAR(40) NOT NULL,
+submission_date DATE,
+PRIMARY KEY ( table1_id )
+);
+
+use testdb;
+alter table table1 add total INT;
+insert into table1 (title,author) values ('book1','author1');
+insert into table1 (title,author) values ('book2','author2');
+insert into table1 (title,author) values ('book4','author4');
+insert into table1 (title,author) values ('book3','author3');
+insert into table1 (title,author) values ('book5','author5');
+
+update table1 set total=10, title='newbook3' where table1_id=3;
+update table1 set submission_date='1122-12-31'  where table1_id=4;
+
+select * from testdb.table1;
+
+
+select title,author from testdb.table1 where table1_id=2;
+delete from table1 where table1_id=4;
+
+
+
+
+
+
+
+

@@ -4,9 +4,10 @@
 
 import socket
 
-from ....NxLib import requests
-from ....NxLib.requests.packages.urllib3.poolmanager import PoolManager
-from ....NxLib.requests.adapters import HTTPAdapter
+from NxSanfran.NxLib import requests
+from NxSanfran.NxLib.requests.packages.urllib3.poolmanager import PoolManager
+from NxSanfran.NxLib.requests.adapters import HTTPAdapter
+
 
 
 

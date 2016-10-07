@@ -6,9 +6,10 @@ import subprocess
 import logging
 
 
-from ....NxUsr.NxLib.NxLogging import setSimpleLogging
-from ....NxUsr.NxLib.NxWechat2.WechatActiveAgent import WechatActive
-from ....NxEtc.NxPublic.NxPredefault import PreWechat as PredefinedWechat
+
+from NxSanfran.NxUsr.NxLib.NxLogging import setSimpleLogging
+from NxSanfran.NxUsr.NxLib.NxWechat2.WechatActiveAgent import WechatActive
+from NxSanfran.NxEtc.NxPublic.NxPredefault import PreWechat as PredefinedWechat
 
 def checkSubnet(dstIp):
     setSimpleLogging()

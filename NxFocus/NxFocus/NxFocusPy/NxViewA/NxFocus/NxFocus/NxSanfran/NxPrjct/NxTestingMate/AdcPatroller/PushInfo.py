@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
 
-from ....NxUsr.NxLib.NxWechat2.WechatActiveAgent import WechatActive
-from ....NxEtc.NxPublic.NxPredefault.PreWechat import *
+
+from NxSanfran.NxUsr.NxLib.NxWechat2.WechatActiveAgent import WechatActive
+from NxSanfran.NxEtc.NxPublic.NxPredefault.PreWechat import *
 
 
 def wechat2Me(message):

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import os
-from ... import IpNet
+from NxSanfran.NxUsr.NxLib import IpNet
 import random
 
 

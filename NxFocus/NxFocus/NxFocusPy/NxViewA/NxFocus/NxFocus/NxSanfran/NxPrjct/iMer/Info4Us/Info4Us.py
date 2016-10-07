@@ -4,10 +4,10 @@
 
 import logging
 
-from ....NxUsr.NxLib.NxLogging import setSimpleLogging
-from ....NxEtc.NxPublic.NxPredefault import PreWechat as PredefinedWechat
-from ....NxUsr.NxLib.NxWechat2.WechatActiveAgent import WechatActive
-from ....NxLib import schedule
+from NxSanfran.NxUsr.NxLib.NxLogging import setSimpleLogging
+from NxSanfran.NxEtc.NxPublic.NxPredefault import PreWechat as PredefinedWechat
+from NxSanfran.NxUsr.NxLib.NxWechat2.WechatActiveAgent import WechatActive
+from NxSanfran.NxLib import schedule
 
 
 import time

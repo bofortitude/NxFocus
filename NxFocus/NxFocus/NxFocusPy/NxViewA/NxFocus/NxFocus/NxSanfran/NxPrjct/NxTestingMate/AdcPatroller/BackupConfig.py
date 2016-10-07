@@ -3,10 +3,11 @@
 
 import logging
 import time
-from ....NxUsr.NxLib.NxRequests import NxRequests
-from ....NxUsr.NxLib import NxFiles
-from ....NxUsr.NxLib.NxCallSystem.ADC.AdcCommandLine.TelnetCommandLine import TelCmdLine
-from PushInfo import wechat2Me
+
+from NxSanfran.NxUsr.NxLib.NxRequests import NxRequests
+from NxSanfran.NxUsr.NxLib import NxFiles
+from NxSanfran.NxUsr.NxLib.NxCallSystem.ADC.AdcCommandLine.TelnetCommandLine import TelCmdLine
+from .PushInfo import wechat2Me
 
 
 
