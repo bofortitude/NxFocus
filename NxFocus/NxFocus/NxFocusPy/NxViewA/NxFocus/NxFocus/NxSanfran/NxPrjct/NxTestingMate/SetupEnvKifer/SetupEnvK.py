@@ -5,7 +5,8 @@ import ConfigParser
 import re
 import logging
 import ClearServerNetConfig
-from ....NxUsr.NxLib.NxCallSystem import SshRemote
+# from ....NxUsr.NxLib.NxCallSystem import SshRemote
+from NxSanfran.NxUsr.NxLib.NxCallSystem import SshRemote
 
 
 

@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 
-from ....NxUsr.NxLib.NxCallSystem import SshRemote
+# from ....NxUsr.NxLib.NxCallSystem import SshRemote
+from NxSanfran.NxUsr.NxLib.NxCallSystem import SshRemote
 import sys
 import re
 import logging
