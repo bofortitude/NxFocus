@@ -4,28 +4,40 @@
 from mysql import connector
 
 
-
 host = '10.0.12.21'
 username = 'root'
 password = 'fortinet'
 serverPort = 3306
 database = None
 useCharset = 'utf8'
-db_index=True
+# db_index=True
+
+if 1 == 1:
+    pass
 
 
+mySqlConfig = {'host': host,  # default is 127.0.0.1
+               'user': username,
+               'password': password,
+               'port': serverPort,  # default is 3306
+               'database': database,
+               'charset': useCharset,  # default is utf8
+               # default value is False, means using pure python
+               # implementation, if True, means using C
+               'use_pure': False
+               }
 
-mySqlConfig={'host':host, # default is 127.0.0.1
-'user':username,
-'password':password,
-'port':serverPort ,#default is 3306
-'database':database,
-'charset': useCharset #default is utf8
+
+mySqlConfig = {
+    'host': host,
+
+
 }
+
 try:
-	myConnection = connector.connect(**mySqlConfig)
+    myConnection = connector.connect(**mySqlConfig)
 except connector.Error as e:
-	print('connect fails!{}'.format(e))
+    print('connect fails!{}'.format(e))
 
 myCursor = myConnection.cursor()
 
@@ -34,13 +46,10 @@ myCursor.execute(sql)
 
 resultSet = myCursor.fetchall()
 if resultSet:
-	for row in resultSet:
-		# print "%d, %s, %s, %d, %s, %s" % (row[0],row[1],row[2],row[3],row[4],row[5])
-		print row
+    for row in resultSet:
+        # print "%d, %s, %s, %d, %s, %s" %
+        # (row[0],row[1],row[2],row[3],row[4],row[5])
+        print row
 
 myCursor.close()
 myConnection.close()
-
-
-
-

@@ -1,29 +1,20 @@
 #!/usr/bin/python
 
-
-from ...NxLib import argparse
-from ...NxLib.argparse import RawTextHelpFormatter
-from ...NxUsr.NxLib import NxFiles
+import logging
 
 
+class cls1(object):
+    """docstring for cls1"""
+
+    def __init__(self):
+        # super(cls1, self).__init__()
+        # self.arg = arg
+        pass
 
 
+def enMain(*args, **kwargs):
 
-
-
-
-
-
-def enMain(argsList):
-    from ..NxTestingMate.AdcPatroller.BackupConfig import getAdcSystemStatus
-    getAdcSystemStatus('10.160.41.193')
-
-
-
-
-
-
-
-
-
-
+    aa = cls1()
+    # logger = logging.getLogger()
+    # logger.critical(str(aa))
+    logging.critical(aa)
