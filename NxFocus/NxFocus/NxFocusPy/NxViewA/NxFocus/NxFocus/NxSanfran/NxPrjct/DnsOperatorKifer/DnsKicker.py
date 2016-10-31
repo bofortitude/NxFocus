@@ -1,21 +1,24 @@
 #!/usr/bin/python
 
-import DnsQuery
-import argparse
-from argparse import RawTextHelpFormatter
-from IpNet import ip_net as ip_net
+
+from NxSanfran.NxLib import argparse
+from NxSanfran.NxLib.argparse import RawTextHelpFormatter
+from NxSanfran.NxUsr.NxLib.IpNet import ip_net as ip_net
 import re
 import time
-import IpLibHandler
+from NxSanfran.NxUsr.NxLib.NxCallSystem.ADC import IpLibHandler
+
 
 class argument():
     '''Handle arguments'''
 
-    def __init__(self):
+    def __init__(self, sysArgsList):
+        self.sysArgsList = list(sysArgsList)
+        programName = self.sysArgsList[0]
+        del self.sysArgsList[0]
         self.ipaddress = ip_net()
         self.match_string1 = re.compile('\[[^][]+]\([^)(]+\)')  # match []()
-        arg_usage = '''
-./DnsKicker.py <dns-server> <domain-name> [options]
+        arg_usage = str(programName) + ''' <dns-server> <domain-name> [options]
 
 Version 1.00
 
@@ -23,31 +26,32 @@ Notes:
 
 
 '''
-        self.parser = argparse.ArgumentParser(usage=arg_usage, formatter_class=RawTextHelpFormatter)
-        self.parser.add_argument('-c', '--concurrent', dest='concurrent', default=1, type=int,
-                            help="Specify the concurrent threads number.")
+        self.parser = argparse.ArgumentParser(
+            usage=arg_usage, formatter_class=RawTextHelpFormatter)
+        self.parser.add_argument('-c', '--concurrent', dest='concurrent',
+                                 default=1, type=int, help="Specify the concurrent threads number.")
         self.parser.add_argument('-r', '--requests', dest='requests', default=1, type=int,
-                            help="Specify the requests number per thread.")
+                                 help="Specify the requests number per thread.")
         self.parser.add_argument('-i', '--interval', dest='interval', default=1.0, type=float,
-                            help='Interval between requests, default is 1.')
+                                 help='Interval between requests, default is 1.')
         self.parser.add_argument('-s', '--source-address', dest='source_address',
-                            help="Kinds of format are supported:\n1) -s '10.76.1.1,10.77.2.1,10.88.1.1-10.88.2.10,10.100.1.3'\n2) -s '[10.76.1.0/24](10) [10.76.123.0/24](5)'")
+                                 help="Kinds of format are supported:\n1) -s '10.76.1.1,10.77.2.1,10.88.1.1-10.88.2.10,10.100.1.3'\n2) -s '[10.76.1.0/24](10) [10.76.123.0/24](5)'")
         self.parser.add_argument('-p', '--source-port', dest='source_port',
-                            help="Format: -p '2234,4532,5423-5490,2452'")
+                                 help="Format: -p '2234,4532,5423-5490,2452'")
         self.parser.add_argument('-d', '--dns-port', dest='destination_port', default=53, type=int,
-                            help='''Specify the dns port, default is 53.''')
+                                 help='''Specify the dns port, default is 53.''')
         self.parser.add_argument('-n', '--timeout', dest='timeout', default=5, type=float,
-                            help='Timeout or every request, default is 5s.')
+                                 help='Timeout or every request, default is 5s.')
         self.parser.add_argument('-t', '--tcp', dest='is_tcp', action='store_true',
-                            help='Use TCP as transport protocol once it is taken.')
+                                 help='Use TCP as transport protocol once it is taken.')
         self.parser.add_argument('-o', '--record-type', dest='record_type', default='A',
-                            help='Specify the record type, default is "A".')
+                                 help='Specify the record type, default is "A".')
         self.parser.add_argument('-m', '--reuse-session', dest='reuse_session', action='store_true',
-                            help='Reuse the session to send requests once it is taken.')
+                                 help='Reuse the session to send requests once it is taken.')
         self.parser.add_argument('-f', '--show-full', dest='show_full', action='store_true',
-                            help='Show full response info once it is taken.')
+                                 help='Show full response info once it is taken.')
         self.parser.add_argument('-w', '--watch-statistics', dest='show_statistics', action='store_true',
-                            help='Show statistics info only once it is taken.')
+                                 help='Show statistics info only once it is taken.')
         self.parser.add_argument('--isp-address', dest='isp_address', default=None,
                                  help='''Specify the source addresses from ISP predefined base. Format: \n--isp-address "china-telecom Anhui" \n--isp-address "any Henan"''')
         self.parser.add_argument('--geo-address', dest='geo_address', default=None,
@@ -55,19 +59,22 @@ Notes:
         self.parser.add_argument('--total-address', dest='total_address', default=1, type=int,
                                  help='Specify total isp address or total geo address, default is 1.')
         self.parser.add_argument('--same-id', dest='same_id', action='store_true',
-                            help='Use same message ID for every thread once it is taken.')
+                                 help='Use same message ID for every thread once it is taken.')
         self.parser.add_argument('--no-recurse', dest='recurse', action='store_false',
-                            help='Unset the recurse bit once it is taken.')
+                                 help='Unset the recurse bit once it is taken.')
         self.parser.add_argument('--rdclass', dest='rdclass', default='IN',
-                            help='Specify the rdclass, default is "IN".')
+                                 help='Specify the rdclass, default is "IN".')
         self.parser.add_argument('--aaonly', dest='aaflag', action='store_true',
-                            help='Set the aa bit once it is taken.')
+                                 help='Set the aa bit once it is taken.')
         self.parser.add_argument('--adflag', dest='adflag', action='store_true',
-                            help='Set the ad bit once it is taken.')
+                                 help='Set the ad bit once it is taken.')
         self.parser.add_argument('--cdflag', dest='cdflag', action='store_true',
-                            help='Set the cd bit once it is taken.')
+                                 help='Set the cd bit once it is taken.')
+        self.parser.add_argument('--debug', dest='debug', action='store_false',
+                                help='Enable debug mode.')
 
-        self.args, self.remaining = self.parser.parse_known_args()
+        self.args, self.remaining = self.parser.parse_known_args(
+            self.sysArgsList)
 
         if len(self.remaining) < 2:
             self.print_help()
@@ -88,49 +95,51 @@ Notes:
         self.aaflag = self.args.aaflag
         self.adflag = self.args.adflag
         self.cdflag = self.args.cdflag
+        self.debug = self.args.debug
+
 
         self.dns_server = self.remaining[0]
         self.domain_name = self.remaining[1]
 
-
-        if self.args.source_address == None:
+        if self.args.source_address is None:
             self.source_address = None
         else:
             self.source_address = self.handle_src_add()
-        if self.args.source_port == None:
+        if self.args.source_port is None:
             self.source_port = None
         else:
             self.source_port = self.handle_src_port()
 
+        if self.args.isp_address is not None:
 
-        if self.args.isp_address != None:
-
-            isp_addr_list = IpLibHandler.get_ip_list('ISP', self.args.isp_address, self.args.total_address)
-            if isp_addr_list != False:
-                if self.source_address == None:
+            isp_addr_list = IpLibHandler.get_ip_list(
+                'ISP', self.args.isp_address, self.args.total_address)
+            if isp_addr_list is not False:
+                if self.source_address is None:
                     self.source_address = isp_addr_list
                 else:
-                    self.source_address = self.source_address+isp_addr_list
-        if self.args.geo_address != None:
+                    self.source_address = self.source_address + isp_addr_list
+        if self.args.geo_address is not None:
             if self.dns_server.find(':') == -1:
-                #ipv4
-                geo_addr_list = IpLibHandler.get_ip_list('Country', self.args.geo_address, self.args.total_address, ipv6=False)
+                # ipv4
+                geo_addr_list = IpLibHandler.get_ip_list(
+                    'Country', self.args.geo_address, self.args.total_address,
+                    ipv6=False)
             else:
-                #ipv6
-                geo_addr_list = IpLibHandler.get_ip_list('Country', self.args.geo_address, self.args.total_address,
+                # ipv6
+                geo_addr_list = IpLibHandler.get_ip_list('Country',
+                                                         self.args.geo_address,
+                                                         self.args.total_address,
                                                          ipv6=True)
-            if geo_addr_list != False:
-                if self.source_address == None:
+            if geo_addr_list is not False:
+                if self.source_address is None:
                     self.source_address = geo_addr_list
                 else:
-                    self.source_address = self.source_address+geo_addr_list
-
-
+                    self.source_address = self.source_address + geo_addr_list
 
     def print_help(self):
         self.parser.print_help()
         exit()
-
 
     def handle_src_add(self):
         '''handle source address'''
@@ -141,7 +150,8 @@ Notes:
                 src_add_result = src_add_result + self.ipaddress.ip_random(infor.split(']')[0].split('[')[1],
                                                                            int(infor.split('(')[1].split(')')[0]))
         else:
-            src_add_result = src_add_result + self.ipaddress.ip_range(self.args.source_address)
+            src_add_result = src_add_result + \
+                self.ipaddress.ip_range(self.args.source_address)
         return src_add_result
 
     def handle_src_port(self):
@@ -159,26 +169,10 @@ Notes:
         return src_port_result
 
 
-
 def dump_info(msg, raw=False):
-    if raw == True:
+    if raw is True:
         print msg
     else:
-        print '['+time.ctime()+'] '+msg
+        print '[' + time.ctime() + '] ' + msg
 
-
-
-
-
-if __name__ == '__main__':
-    args = argument()
-    dns_sender = DnsQuery.DnsQuery(args.dns_server, dns_server_port=args.destination_port)
-    dns_sender.start(args.domain_name, concurrent_threads=args.concurrent, requests_per_thread=args.requests, interval=args.interval,
-                     reuse_session=args.reuse_session, src_ip_list=args.source_address, src_port_list=args.source_port, tcp=args.is_tcp,
-                     timeout=args.timeout, record_type=args.record_type, recurse=args.recurse, rdclass=args.rdclass,
-                     show_statistics=args.show_statistics, show_full=args.show_full)
-    dump_info('All threads have been generated.')
-    dump_info('Starting threads...')
-    dns_sender._start_thread()
-    dns_sender._wait_for_thread()
 
