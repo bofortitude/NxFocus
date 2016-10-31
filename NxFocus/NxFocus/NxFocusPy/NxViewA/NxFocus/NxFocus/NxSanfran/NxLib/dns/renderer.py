@@ -15,20 +15,24 @@
 
 """Help for building DNS wire format messages"""
 
-import io
+from io import BytesIO
 import struct
 import random
 import time
 
 import dns.exception
 import dns.tsig
+from ._compat import long
+
 
 QUESTION = 0
 ANSWER = 1
 AUTHORITY = 2
 ADDITIONAL = 3
 
+
 class Renderer(object):
+
     """Helper class for building DNS wire-format messages.
 
     Most applications can use the higher-level L{dns.message.Message}
@@ -47,11 +51,11 @@ class Renderer(object):
         r.add_rrset(dns.renderer.ADDTIONAL, ad_rrset_1)
         r.add_rrset(dns.renderer.ADDTIONAL, ad_rrset_2)
         r.write_header()
-        r.add_tsig(keyname, secret, 300, 1, 0, b'', request_mac)
+        r.add_tsig(keyname, secret, 300, 1, 0, '', request_mac)
         wire = r.get_wire()
 
     @ivar output: where rendering is written
-    @type output: io.BytesIO object
+    @type output: BytesIO object
     @ivar id: the message id
     @type id: int
     @ivar flags: the message flags
@@ -68,7 +72,7 @@ class Renderer(object):
     @ivar counts: list of the number of RRs in each section
     @type counts: int list of length 4
     @ivar mac: the MAC of the rendered message (if TSIG was used)
-    @type mac: bytes
+    @type mac: string
     """
 
     def __init__(self, id=None, flags=0, max_size=65535, origin=None):
@@ -83,10 +87,10 @@ class Renderer(object):
         then L{dns.exception.TooBig} will be raised.
         @type max_size: int
         @param origin: the origin to use when rendering relative names
-        @type origin: dns.name.Namem or None.
+        @type origin: dns.name.Name or None.
         """
 
-        self.output = io.BytesIO()
+        self.output = BytesIO()
         if id is None:
             self.id = random.randint(0, 65535)
         else:
@@ -98,7 +102,7 @@ class Renderer(object):
         self.section = QUESTION
         self.counts = [0, 0, 0, 0]
         self.output.write(b'\x00' * 12)
-        self.mac = b''
+        self.mac = ''
 
     def _rollback(self, where):
         """Truncate the output buffer at offset I{where}, and remove any
@@ -218,13 +222,13 @@ class Renderer(object):
         """
 
         # make sure the EDNS version in ednsflags agrees with edns
-        ednsflags &= 0xFF00FFFF
+        ednsflags &= long(0xFF00FFFF)
         ednsflags |= (edns << 16)
         self._set_section(ADDITIONAL)
         before = self.output.tell()
         self.output.write(struct.pack('!BHHIH', 0, dns.rdatatype.OPT, payload,
                                       ednsflags, 0))
-        if not options is None:
+        if options is not None:
             lstart = self.output.tell()
             for opt in options:
                 stuff = struct.pack("!HH", opt.otype, 0)
@@ -267,7 +271,7 @@ class Renderer(object):
         @type other_data: string
         @param request_mac: This message is a response to the request which
         had the specified MAC.
-        @type request_mac: bytes
+        @type request_mac: string
         @param algorithm: the TSIG algorithm to use
         @type algorithm: dns.name.Name object
         """

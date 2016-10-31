@@ -15,13 +15,15 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
-import io
+from io import StringIO
 
 import dns.rdataset
 import dns.rdatatype
 import dns.renderer
 
+
 class Node(object):
+
     """A DNS node.
 
     A node is a set of rdatasets
@@ -35,7 +37,7 @@ class Node(object):
         """Initialize a DNS node.
         """
 
-        self.rdatasets = [];
+        self.rdatasets = []
 
     def to_text(self, name, **kw):
         """Convert a node to text format.
@@ -47,10 +49,11 @@ class Node(object):
         @rtype: string
         """
 
-        s = io.StringIO()
+        s = StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                print(rds.to_text(name, **kw), file=s)
+                s.write(rds.to_text(name, **kw))
+                s.write(u'\n')
         return s.getvalue()[:-1]
 
     def __repr__(self):
@@ -155,7 +158,7 @@ class Node(object):
         """
 
         rds = self.get_rdataset(rdclass, rdtype, covers)
-        if not rds is None:
+        if rds is not None:
             self.rdatasets.remove(rds)
 
     def replace_rdataset(self, replacement):

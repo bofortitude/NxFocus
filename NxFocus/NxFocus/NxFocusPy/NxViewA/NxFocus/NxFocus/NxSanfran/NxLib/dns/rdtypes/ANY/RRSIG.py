@@ -22,11 +22,12 @@ import dns.dnssec
 import dns.exception
 import dns.rdata
 import dns.rdatatype
-import dns.util
+
 
 class BadSigTime(dns.exception.DNSException):
-    """Raised when a SIG or RRSIG RR's time cannot be parsed."""
-    pass
+
+    """Time in DNS SIG or RRSIG resource record cannot be parsed."""
+
 
 def sigtime_to_posixtime(what):
     if len(what) != 14:
@@ -40,10 +41,13 @@ def sigtime_to_posixtime(what):
     return calendar.timegm((year, month, day, hour, minute, second,
                             0, 0, 0))
 
+
 def posixtime_to_sigtime(what):
     return time.strftime('%Y%m%d%H%M%S', time.gmtime(what))
 
+
 class RRSIG(dns.rdata.Rdata):
+
     """RRSIG record
 
     @ivar type_covered: the rdata type this signature covers
@@ -95,12 +99,12 @@ class RRSIG(dns.rdata.Rdata):
             posixtime_to_sigtime(self.expiration),
             posixtime_to_sigtime(self.inception),
             self.key_tag,
-            self.signer,
+            self.signer.choose_relativity(origin, relativize),
             dns.rdata._base64ify(self.signature)
-            )
+        )
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         type_covered = dns.rdatatype.from_text(tok.get_string())
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         labels = tok.get_int()
@@ -117,14 +121,14 @@ class RRSIG(dns.rdata.Rdata):
                 break
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t.value)
-        b64 = ''.join(chunks)
-        signature = base64.b64decode(b64.encode('ascii'))
+            chunks.append(t.value.encode())
+        b64 = b''.join(chunks)
+        signature = base64.b64decode(b64)
         return cls(rdclass, rdtype, type_covered, algorithm, labels,
                    original_ttl, expiration, inception, key_tag, signer,
                    signature)
 
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         header = struct.pack('!HBBIIIH', self.type_covered,
                              self.algorithm, self.labels,
                              self.original_ttl, self.expiration,
@@ -134,35 +138,19 @@ class RRSIG(dns.rdata.Rdata):
         file.write(self.signature)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        header = struct.unpack('!HBBIIIH', wire[current : current + 18])
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        header = struct.unpack('!HBBIIIH', wire[current: current + 18])
         current += 18
         rdlen -= 18
         (signer, cused) = dns.name.from_wire(wire[: current + rdlen], current)
         current += cused
         rdlen -= cused
-        if not origin is None:
+        if origin is not None:
             signer = signer.relativize(origin)
-        signature = wire[current : current + rdlen].unwrap()
+        signature = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    header[3], header[4], header[5], header[6], signer,
                    signature)
 
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         self.signer = self.signer.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        hs = struct.pack('!HBBIIIH', self.type_covered,
-                         self.algorithm, self.labels,
-                         self.original_ttl, self.expiration,
-                         self.inception, self.key_tag)
-        ho = struct.pack('!HBBIIIH', other.type_covered,
-                         other.algorithm, other.labels,
-                         other.original_ttl, other.expiration,
-                         other.inception, other.key_tag)
-        v = dns.util.cmp(hs, ho)
-        if v == 0:
-            v = dns.util.cmp(self.signer, other.signer)
-            if v == 0:
-                v = dns.util.cmp(self.signature, other.signature)
-        return v

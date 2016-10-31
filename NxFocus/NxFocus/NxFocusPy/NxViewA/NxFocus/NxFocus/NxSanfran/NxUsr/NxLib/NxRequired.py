@@ -21,7 +21,7 @@ def delSanfranLibPath():
 
 
 def doFundamental():
-	addSanfranLibPath
+	addSanfranLibPath()
 
 
 

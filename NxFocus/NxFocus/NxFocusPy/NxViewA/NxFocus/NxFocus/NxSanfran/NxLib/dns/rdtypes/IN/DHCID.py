@@ -16,14 +16,15 @@
 import base64
 
 import dns.exception
-import dns.util
+
 
 class DHCID(dns.rdata.Rdata):
+
     """DHCID record
 
     @ivar data: the data (the content of the RR is opaque as far as the
     DNS is concerned)
-    @type data: bytes
+    @type data: string
     @see: RFC 4701"""
 
     __slots__ = ['data']
@@ -35,7 +36,8 @@ class DHCID(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         return dns.rdata._base64ify(self.data)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         chunks = []
         while 1:
             t = tok.get().unescape()
@@ -43,21 +45,15 @@ class DHCID(dns.rdata.Rdata):
                 break
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t.value)
-        b64 = ''.join(chunks)
-        data = base64.b64decode(b64.encode('ascii'))
+            chunks.append(t.value.encode())
+        b64 = b''.join(chunks)
+        data = base64.b64decode(b64)
         return cls(rdclass, rdtype, data)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         file.write(self.data)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        data = wire[current : current + rdlen].unwrap()
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        data = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, data)
-
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return dns.util.cmp(self.data, other.data)

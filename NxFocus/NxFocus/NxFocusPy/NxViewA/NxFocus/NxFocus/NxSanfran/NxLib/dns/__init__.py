@@ -48,7 +48,6 @@ __all__ = [
     'ttl',
     'rdtypes',
     'update',
-    'util',
     'version',
     'wiredata',
     'zone',

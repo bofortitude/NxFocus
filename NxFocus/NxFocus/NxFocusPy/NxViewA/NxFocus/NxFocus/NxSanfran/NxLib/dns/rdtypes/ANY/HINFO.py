@@ -13,12 +13,16 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import struct
+
 import dns.exception
 import dns.rdata
 import dns.tokenizer
-import dns.util
+from dns._compat import text_type
+
 
 class HINFO(dns.rdata.Rdata):
+
     """HINFO record
 
     @ivar cpu: the CPU type
@@ -31,38 +35,44 @@ class HINFO(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, cpu, os):
         super(HINFO, self).__init__(rdclass, rdtype)
-        self.cpu = cpu
-        self.os = os
+        if isinstance(cpu, text_type):
+            self.cpu = cpu.encode()
+        else:
+            self.cpu = cpu
+        if isinstance(os, text_type):
+            self.os = os.encode()
+        else:
+            self.os = os
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '"%s" "%s"' % (dns.rdata._escapify(self.cpu),
                               dns.rdata._escapify(self.os))
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         cpu = tok.get_string()
         os = tok.get_string()
         tok.get_eol()
         return cls(rdclass, rdtype, cpu, os)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         l = len(self.cpu)
         assert l < 256
-        dns.util.write_uint8(file, l)
-        file.write(self.cpu.encode('latin_1'))
+        file.write(struct.pack('!B', l))
+        file.write(self.cpu)
         l = len(self.os)
         assert l < 256
-        dns.util.write_uint8(file, l)
-        file.write(self.os.encode('latin_1'))
+        file.write(struct.pack('!B', l))
+        file.write(self.os)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         l = wire[current]
         current += 1
         rdlen -= 1
         if l > rdlen:
             raise dns.exception.FormError
-        cpu = wire[current : current + l].decode('latin_1')
+        cpu = wire[current:current + l].unwrap()
         current += l
         rdlen -= l
         l = wire[current]
@@ -70,13 +80,5 @@ class HINFO(dns.rdata.Rdata):
         rdlen -= 1
         if l != rdlen:
             raise dns.exception.FormError
-        os = wire[current : current + l].decode('latin_1')
+        os = wire[current: current + l].unwrap()
         return cls(rdclass, rdtype, cpu, os)
-
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        v = dns.util.cmp(self.cpu, other.cpu)
-        if v == 0:
-            v = dns.util.cmp(self.os, other.os)
-        return v

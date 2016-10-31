@@ -19,11 +19,14 @@
 @type public_enum_domain: dns.name.Name object
 """
 
+
 import dns.exception
 import dns.name
 import dns.resolver
+from ._compat import string_types
 
 public_enum_domain = dns.name.from_text('e164.arpa.')
+
 
 def from_e164(text, origin=public_enum_domain):
     """Convert an E.164 number in textual form into a Name object whose
@@ -39,6 +42,7 @@ def from_e164(text, origin=public_enum_domain):
     parts.reverse()
     return dns.name.from_text('.'.join(parts), origin=origin)
 
+
 def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     """Convert an ENUM domain name into an E.164 number.
     @param name: the ENUM domain name.
@@ -50,16 +54,17 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     returned number.
     @rtype: str
     """
-    if not origin is None:
+    if origin is not None:
         name = name.relativize(origin)
-    dlabels = [d for d in name.labels if (d.isdigit() and len(d) == 1)]
+    dlabels = [d for d in name.labels if d.isdigit() and len(d) == 1]
     if len(dlabels) != len(name.labels):
         raise dns.exception.SyntaxError('non-digit labels in ENUM domain name')
     dlabels.reverse()
-    text = ''.join([x.decode('ascii') for x in dlabels])
+    text = b''.join(dlabels)
     if want_plus_prefix:
-        text = '+' + text
+        text = b'+' + text
     return text
+
 
 def query(number, domains, resolver=None):
     """Look for NAPTR RRs for the specified number in the specified domains.
@@ -68,12 +73,13 @@ def query(number, domains, resolver=None):
     """
     if resolver is None:
         resolver = dns.resolver.get_default_resolver()
+    e_nx = dns.resolver.NXDOMAIN()
     for domain in domains:
-        if isinstance(domain, str):
+        if isinstance(domain, string_types):
             domain = dns.name.from_text(domain)
         qname = dns.e164.from_e164(number, domain)
         try:
             return resolver.query(qname, 'NAPTR')
-        except dns.resolver.NXDOMAIN:
-            pass
-    raise dns.resolver.NXDOMAIN
+        except dns.resolver.NXDOMAIN as e:
+            e_nx += e
+    raise e_nx

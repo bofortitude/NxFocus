@@ -14,12 +14,14 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import struct
+import binascii
 
 import dns.rdata
 import dns.rdatatype
-import dns.util
+
 
 class DSBase(dns.rdata.Rdata):
+
     """Base class for rdata that is like a DS record
 
     @ivar key_tag: the key tag
@@ -29,7 +31,7 @@ class DSBase(dns.rdata.Rdata):
     @ivar digest_type: the digest type
     @type digest_type: int
     @ivar digest: the digest
-    @type digest: bytes
+    @type digest: int
     @see: draft-ietf-dnsext-delegation-signer-14.txt"""
 
     __slots__ = ['key_tag', 'algorithm', 'digest_type', 'digest']
@@ -49,7 +51,7 @@ class DSBase(dns.rdata.Rdata):
                                                   chunksize=128))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         key_tag = tok.get_uint16()
         algorithm = tok.get_uint8()
         digest_type = tok.get_uint8()
@@ -60,31 +62,22 @@ class DSBase(dns.rdata.Rdata):
                 break
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t.value)
-        digest = bytes.fromhex(''.join(chunks))
+            chunks.append(t.value.encode())
+        digest = b''.join(chunks)
+        digest = binascii.unhexlify(digest)
         return cls(rdclass, rdtype, key_tag, algorithm, digest_type,
                    digest)
 
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!HBB", self.key_tag, self.algorithm,
                              self.digest_type)
         file.write(header)
         file.write(self.digest)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        header = struct.unpack("!HBB", wire[current : current + 4])
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        header = struct.unpack("!HBB", wire[current: current + 4])
         current += 4
         rdlen -= 4
-        digest = wire[current : current + rdlen].unwrap()
+        digest = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2], digest)
-
-    def _cmp(self, other):
-        hs = struct.pack("!HBB", self.key_tag, self.algorithm,
-                         self.digest_type)
-        ho = struct.pack("!HBB", other.key_tag, other.algorithm,
-                         other.digest_type)
-        v = dns.util.cmp(hs, ho)
-        if v == 0:
-            v = dns.util.cmp(self.digest, other.digest)
-        return v

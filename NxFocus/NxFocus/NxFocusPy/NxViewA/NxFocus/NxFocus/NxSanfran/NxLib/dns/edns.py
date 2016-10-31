@@ -17,7 +17,9 @@
 
 NSID = 3
 
+
 class Option(object):
+
     """Base class for all EDNS option types.
     """
 
@@ -41,7 +43,7 @@ class Option(object):
         @type otype: int
         @param wire: The wire-format message
         @type wire: string
-        @param current: The offet in wire of the beginning of the rdata.
+        @param current: The offset in wire of the beginning of the rdata.
         @type current: int
         @param olen: The length of the wire-format option data
         @type olen: int
@@ -50,7 +52,8 @@ class Option(object):
 
     def _cmp(self, other):
         """Compare an EDNS option with another option of the same type.
-        Return < 0 if self < other, 0 if self == other, and > 0 if self > other.
+        Return < 0 if self < other, 0 if self == other,
+        and > 0 if self > other.
         """
         raise NotImplementedError
 
@@ -70,30 +73,31 @@ class Option(object):
 
     def __lt__(self, other):
         if not isinstance(other, Option) or \
-               self.otype != other.otype:
+                self.otype != other.otype:
             return NotImplemented
         return self._cmp(other) < 0
 
     def __le__(self, other):
         if not isinstance(other, Option) or \
-               self.otype != other.otype:
+                self.otype != other.otype:
             return NotImplemented
         return self._cmp(other) <= 0
 
     def __ge__(self, other):
         if not isinstance(other, Option) or \
-               self.otype != other.otype:
+                self.otype != other.otype:
             return NotImplemented
         return self._cmp(other) >= 0
 
     def __gt__(self, other):
         if not isinstance(other, Option) or \
-               self.otype != other.otype:
+                self.otype != other.otype:
             return NotImplemented
         return self._cmp(other) > 0
 
 
 class GenericOption(Option):
+
     """Generate Rdata Class
 
     This class is used for EDNS option types for which we have no better
@@ -107,21 +111,27 @@ class GenericOption(Option):
     def to_wire(self, file):
         file.write(self.data)
 
-    def _cmp(self, other):
-        return cmp(self.data, other.data)
-
     @classmethod
     def from_wire(cls, otype, wire, current, olen):
-        return cls(otype, wire[current : current + olen])
+        return cls(otype, wire[current: current + olen])
+
+    def _cmp(self, other):
+        if self.data == other.data:
+            return 0
+        if self.data > other.data:
+            return 1
+        return -1
 
 _type_to_class = {
 }
+
 
 def get_option_class(otype):
     cls = _type_to_class.get(otype)
     if cls is None:
         cls = GenericOption
     return cls
+
 
 def option_from_wire(otype, wire, current, olen):
     """Build an EDNS option object from wire format
@@ -130,7 +140,7 @@ def option_from_wire(otype, wire, current, olen):
     @type otype: int
     @param wire: The wire-format message
     @type wire: string
-    @param current: The offet in wire of the beginning of the rdata.
+    @param current: The offset in wire of the beginning of the rdata.
     @type current: int
     @param olen: The length of the wire-format option data
     @type olen: int

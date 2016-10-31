@@ -15,12 +15,16 @@
 
 """TXT-like base class."""
 
+import struct
+
 import dns.exception
 import dns.rdata
 import dns.tokenizer
-import dns.util
+from dns._compat import binary_type
+
 
 class TXTBase(dns.rdata.Rdata):
+
     """Base class for rdata that is like a TXT record
 
     @ivar strings: the text strings
@@ -32,7 +36,7 @@ class TXTBase(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, strings):
         super(TXTBase, self).__init__(rdclass, rdtype)
         if isinstance(strings, str):
-            strings = [ strings ]
+            strings = [strings]
         self.strings = strings[:]
 
     def to_text(self, origin=None, relativize=True, **kw):
@@ -44,7 +48,7 @@ class TXTBase(dns.rdata.Rdata):
         return txt
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         strings = []
         while 1:
             token = tok.get().unescape()
@@ -54,20 +58,24 @@ class TXTBase(dns.rdata.Rdata):
                 raise dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:
                 raise dns.exception.SyntaxError("string too long")
-            strings.append(token.value)
+            value = token.value
+            if isinstance(value, binary_type):
+                strings.append(value)
+            else:
+                strings.append(value.encode())
         if len(strings) == 0:
             raise dns.exception.UnexpectedEnd
         return cls(rdclass, rdtype, strings)
 
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         for s in self.strings:
             l = len(s)
             assert l < 256
-            dns.util.write_uint8(file, l)
-            file.write(s.encode('latin_1'))
+            file.write(struct.pack('!B', l))
+            file.write(s)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         strings = []
         while rdlen > 0:
             l = wire[current]
@@ -75,11 +83,8 @@ class TXTBase(dns.rdata.Rdata):
             rdlen -= 1
             if l > rdlen:
                 raise dns.exception.FormError
-            s = wire[current : current + l].decode('latin_1')
+            s = wire[current: current + l].unwrap()
             current += l
             rdlen -= l
             strings.append(s)
         return cls(rdclass, rdtype, strings)
-
-    def _cmp(self, other):
-        return dns.util.cmp(self.strings, other.strings)

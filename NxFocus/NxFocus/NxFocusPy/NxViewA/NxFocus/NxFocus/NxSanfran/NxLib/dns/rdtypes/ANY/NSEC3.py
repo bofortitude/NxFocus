@@ -14,19 +14,25 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import base64
-import io
+import binascii
 import string
 import struct
 
 import dns.exception
 import dns.rdata
 import dns.rdatatype
-import dns.util
+from dns._compat import xrange, text_type
 
-b32_hex_to_normal = bytes.maketrans(b'0123456789ABCDEFGHIJKLMNOPQRSTUV',
-                                    b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
-b32_normal_to_hex = bytes.maketrans(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
-                                    b'0123456789ABCDEFGHIJKLMNOPQRSTUV')
+try:
+    b32_hex_to_normal = string.maketrans('0123456789ABCDEFGHIJKLMNOPQRSTUV',
+                                         'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
+    b32_normal_to_hex = string.maketrans('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
+                                         '0123456789ABCDEFGHIJKLMNOPQRSTUV')
+except AttributeError:
+    b32_hex_to_normal = bytes.maketrans(b'0123456789ABCDEFGHIJKLMNOPQRSTUV',
+                                        b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
+    b32_normal_to_hex = bytes.maketrans(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
+                                        b'0123456789ABCDEFGHIJKLMNOPQRSTUV')
 
 # hash algorithm constants
 SHA1 = 1
@@ -34,7 +40,9 @@ SHA1 = 1
 # flag constants
 OPTOUT = 1
 
+
 class NSEC3(dns.rdata.Rdata):
+
     """NSEC3 record
 
     @ivar algorithm: the hash algorithm number
@@ -44,11 +52,11 @@ class NSEC3(dns.rdata.Rdata):
     @ivar iterations: the number of iterations
     @type iterations: int
     @ivar salt: the salt
-    @type salt: bytes
+    @type salt: string
     @ivar next: the next name hash
-    @type next: bytes
+    @type next: string
     @ivar windows: the windowed bitmap list
-    @type windows: list of (window number, bytes) tuples"""
+    @type windows: list of (window number, string) tuples"""
 
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt', 'next', 'windows']
 
@@ -58,41 +66,45 @@ class NSEC3(dns.rdata.Rdata):
         self.algorithm = algorithm
         self.flags = flags
         self.iterations = iterations
-        self.salt = salt
+        if isinstance(salt, text_type):
+            self.salt = salt.encode()
+        else:
+            self.salt = salt
         self.next = next
         self.windows = windows
 
     def to_text(self, origin=None, relativize=True, **kw):
-        next = base64.b32encode(self.next).translate(b32_normal_to_hex).lower()
-        next = next.decode('ascii')
+        next = base64.b32encode(self.next).translate(
+            b32_normal_to_hex).lower().decode()
         if self.salt == b'':
             salt = '-'
         else:
-            salt = base64.b16encode(self.salt).decode('ascii').lower()
-        text = ''
+            salt = binascii.hexlify(self.salt).decode()
+        text = u''
         for (window, bitmap) in self.windows:
             bits = []
-            for i in range(0, len(bitmap)):
+            for i in xrange(0, len(bitmap)):
                 byte = bitmap[i]
-                for j in range(0, 8):
+                for j in xrange(0, 8):
                     if byte & (0x80 >> j):
-                        bits.append(dns.rdatatype.to_text(window * 256 + \
+                        bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
-            text += (' ' + ' '.join(bits))
-        return '%u %u %u %s %s%s' % (self.algorithm, self.flags, self.iterations,
-                                     salt, next, text)
+            text += (u' ' + u' '.join(bits))
+        return u'%u %u %u %s %s%s' % (self.algorithm, self.flags,
+                                      self.iterations, salt, next, text)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         algorithm = tok.get_uint8()
         flags = tok.get_uint8()
         iterations = tok.get_uint16()
         salt = tok.get_string()
-        if salt == '-':
+        if salt == u'-':
             salt = b''
         else:
-            salt = bytes.fromhex(salt)
-        next = tok.get_string().upper().encode('ascii')
-        next = next.translate(b32_hex_to_normal)
+            salt = binascii.unhexlify(salt.encode('ascii'))
+        next = tok.get_string().encode(
+            'ascii').upper().translate(b32_hex_to_normal)
         next = base64.b32decode(next)
         rdtypes = []
         while 1:
@@ -109,7 +121,7 @@ class NSEC3(dns.rdata.Rdata):
         window = 0
         octets = 0
         prior_rdtype = 0
-        bitmap = bytearray(32)
+        bitmap = bytearray(b'\0' * 32)
         windows = []
         for nrdtype in rdtypes:
             if nrdtype == prior_rdtype:
@@ -118,8 +130,8 @@ class NSEC3(dns.rdata.Rdata):
             new_window = nrdtype // 256
             if new_window != window:
                 if octets != 0:
-                    windows.append((window, bytes(bitmap[0:octets])))
-                bitmap = bytearray(32)
+                    windows.append((window, ''.join(bitmap[0:octets])))
+                bitmap = bytearray(b'\0' * 32)
                 window = new_window
             offset = nrdtype % 256
             byte = offset // 8
@@ -127,12 +139,11 @@ class NSEC3(dns.rdata.Rdata):
             octets = byte + 1
             bitmap[byte] = bitmap[byte] | (0x80 >> bit)
         if octets != 0:
-            windows.append((window, bytes(bitmap[0:octets])))
-        return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next, windows)
+            windows.append((window, bitmap[0:octets]))
+        return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
+                   windows)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         l = len(self.salt)
         file.write(struct.pack("!BBHB", self.algorithm, self.flags,
                                self.iterations, l))
@@ -141,22 +152,23 @@ class NSEC3(dns.rdata.Rdata):
         file.write(struct.pack("!B", l))
         file.write(self.next)
         for (window, bitmap) in self.windows:
-            dns.util.write_uint8(file, window)
-            dns.util.write_uint8(file, len(bitmap))
+            file.write(struct.pack("!BB", window, len(bitmap)))
             file.write(bitmap)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        (algorithm, flags, iterations, slen) = struct.unpack('!BBHB',
-                                                             wire[current : current + 5])
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        (algorithm, flags, iterations, slen) = \
+            struct.unpack('!BBHB', wire[current: current + 5])
+
         current += 5
         rdlen -= 5
-        salt = wire[current : current + slen].unwrap()
+        salt = wire[current: current + slen].unwrap()
         current += slen
         rdlen -= slen
         nlen = wire[current]
         current += 1
         rdlen -= 1
-        next = wire[current : current + nlen].unwrap()
+        next = wire[current: current + nlen].unwrap()
         current += nlen
         rdlen -= nlen
         windows = []
@@ -171,13 +183,9 @@ class NSEC3(dns.rdata.Rdata):
             rdlen -= 2
             if rdlen < octets:
                 raise dns.exception.FormError("bad NSEC3 bitmap length")
-            bitmap = wire[current : current + octets].unwrap()
+            bitmap = bytearray(wire[current: current + octets].unwrap())
             current += octets
             rdlen -= octets
             windows.append((window, bitmap))
-        return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next, windows)
-
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return self._wire_cmp(other)
+        return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
+                   windows)
