@@ -15,6 +15,7 @@ def enMain(sysArgsList):
 
     logger = logging.getLogger()
 
+
     dns_sender = DnsQuery.DnsQuery(
         args.dns_server, dns_server_port=args.destination_port)
     dns_sender.start(args.domain_name, concurrent_threads=args.concurrent, requests_per_thread=args.requests, interval=args.interval,
@@ -25,3 +26,4 @@ def enMain(sysArgsList):
     logger.info('Starting threads...')
     dns_sender._start_thread()
     dns_sender._wait_for_thread()
+

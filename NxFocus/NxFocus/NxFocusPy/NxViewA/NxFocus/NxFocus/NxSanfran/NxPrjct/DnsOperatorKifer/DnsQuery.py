@@ -1,19 +1,12 @@
 #!/usr/bin/python
 
-from NxSanfran.NxLib import dns
 
-from NxSanfran.NxLib.dns import name as dns_Name
-from NxSanfran.NxLib.dns import message as dns_Message
-from NxSanfran.NxLib.dns import query as dns_Query_lib
-from NxSanfran.NxLib.dns import flags as dns_Flags
-
-
-# import dns.name
-# import dns.message
-# import dns.query
-# import dns.flags
-# import subprocess
-# import predefined
+import dns.name
+import dns.message
+import dns.query
+import dns.flags
+import subprocess
+import predefined
 import threading
 import TalkToSystem
 import atexit
@@ -22,20 +15,19 @@ import time
 import logging
 
 
+logger = logging.getLogger()
+
+
 def dump_info(msg, raw=False):
-    if raw is True:
+    if raw == True:
         print str(msg)
     else:
         print '[' + time.ctime() + '] ' + str(msg)
 
 
-logger = logging.getLogger()
-
-
 class answer_stat(threading.Thread):
 
-    def __init__(self, thread_list, public_stat_dict,
-                 thread_lock, interval=1.0):
+    def __init__(self, thread_list, public_stat_dict, thread_lock, interval=1.0):
         super(answer_stat, self).__init__(name='Thread_monitor')
         self.thread_list = thread_list
         self.public_stat_dict = public_stat_dict
@@ -46,19 +38,19 @@ class answer_stat(threading.Thread):
         while True:
             all_threads_dead = True
             for i in self.thread_list:
-                if i.isAlive() is True:
+                if i.isAlive() == True:
                     all_threads_dead = False
                     break
-            if all_threads_dead is True:
+            if all_threads_dead == True:
+                logger.info(str(self.public_stat_dict))
                 self.thread_lock.acquire()
                 # dump_info(str(self.public_stat_dict))
-                logger.info(str(self.public_stat_dict))
                 self.public_stat_dict.clear()
                 self.thread_lock.release()
                 break
+            logger.info(str(self.public_stat_dict))
             self.thread_lock.acquire()
             # dump_info(str(self.public_stat_dict))
-            logger.info(str(self.public_stat_dict))
             self.public_stat_dict.clear()
             self.thread_lock.release()
 
@@ -67,12 +59,9 @@ class answer_stat(threading.Thread):
 
 class ThreadingDnsQuery(threading.Thread):
 
-    def __init__(self, thread_name, lock, request, dns_server,
-                 dns_server_port, requests_per_thread=1, interval=1.0,
-                 reuse_session=False, same_id=True,
+    def __init__(self, thread_name, lock, request, dns_server, dns_server_port, requests_per_thread=1, interval=1.0, reuse_session=False, same_id=True,
                  src_ip=None, src_port=0, tcp=False, timeout=5.0,
-                 record_type='A', show_statistics=False,
-                 show_full=False, public_stat_dict={}):
+                 record_type='A', show_statistics=False, show_full=False, public_stat_dict={}):
         super(ThreadingDnsQuery, self).__init__(name=thread_name)
 
         self.lock = lock
@@ -95,32 +84,26 @@ class ThreadingDnsQuery(threading.Thread):
         self.rcode_reason_dict = dns.rcode._by_value
 
     def _send_request_standard(self, request):
-        if self.tcp is False:
+        if self.tcp == False:
             try:
-                response = dns_Query_lib.udp(request, self.dns_server,
-                                             timeout=self.timeout,
-                                             port=self.dns_server_port,
-                                             source=self.src_ip,
-                                             source_port=self.src_port)
+                response = dns.query.udp(request, self.dns_server, timeout=self.timeout,
+                                         port=self.dns_server_port, source=self.src_ip, source_port=self.src_port)
                 return response
             except Exception as err:
                 # dump_info('The query meets error!', raw=True)
                 logger.warning('The query meets error!')
-                logger.debug(str(err))
+                logger.debug(err)
                 return False
         else:
             try:
 
-                response = dns_Query_lib.tcp(request, self.dns_server,
-                                             timeout=self.timeout,
-                                             port=self.dns_server_port,
-                                             source=self.src_ip,
-                                             source_port=self.src_port)
+                response = dns.query.tcp(request, self.dns_server, timeout=self.timeout,
+                                         port=self.dns_server_port, source=self.src_ip, source_port=self.src_port)
                 return response
             except Exception as err:
                 # dump_info('The query meets error!', raw=True)
                 logger.warning('The query meets error!')
-                logger.debug(str(err))
+                logger.debug(err)
                 return False
         # return  response
 
@@ -138,7 +121,7 @@ class ThreadingDnsQuery(threading.Thread):
         answers = self._response_line(response.answer)
         additional = self._response_line(response.additional)
         authority = self._response_line(response.authority)
-        flags = dns_Flags.to_text(response.flags)
+        flags = dns.flags.to_text(response.flags)
 
         result_dict = {'status_code': status_code,
                        'status_reason': status_reason,
@@ -175,8 +158,8 @@ class ThreadingDnsQuery(threading.Thread):
     def _query_standard(self):
         for i in xrange(self.requests_per_thread):
             response = self._send_request_standard(self.request)
-            if response is False:
-                if self.show_statistics is True:
+            if response == False:
+                if self.show_statistics == True:
                     self.lock.acquire()
                     if 'Error' in self.public_stat_dict:
                         self.public_stat_dict[
@@ -187,15 +170,17 @@ class ThreadingDnsQuery(threading.Thread):
                 time.sleep(self.interval)
                 continue
             results = self._response_handle(response)
-            if self.show_full is True:
+            if self.show_full == True:
                 # self.lock.acquire()
                 # dump_info(response, raw=True)
                 # dump_info('', raw=True)
                 # self.lock.release()
-                logger.info('\n'+str(response))
-                logger.info('')
+                logger.info(
+                    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n'
+                    + 'src ' + str(self.src_ip) + '\n'
+                    + str(response) + '\n')
             else:
-                if self.show_statistics is True:
+                if self.show_statistics == True:
                     mode_return = self._statistics_mode(response, results)
 
                 else:
@@ -207,11 +192,11 @@ class ThreadingDnsQuery(threading.Thread):
                             # dump_info(response, raw=True)
                             # dump_info('', raw=True)
                             # self.lock.release()
-                            logger.info('src ' + str(self.src_ip)+'\n'+str(response))
-                            # logger.info(response)
-                            logger.info('')
-
-                            if self.same_id is False:
+                            logger.info(
+                                '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n'
+                                + 'src ' + str(self.src_ip) + '\n'
+                                + str(response) + '\n')
+                            if self.same_id == False:
                                 self.request.id = dns.entropy.random_16()
                             time.sleep(self.interval)
                             continue
@@ -229,27 +214,24 @@ class ThreadingDnsQuery(threading.Thread):
                                     c_ansr[len(c_ansr) - 1] + ' '
                             remain_answers = remain_answers.rstrip() + ')'
 
-                        shown_result = 'id=' + str(self.request.id)
-                        + ' src=' + str(self.src_ip) + ' primary=' + \
-                            str(primary_answer) + ' remain=' + \
-                            str(remain_answers)
+                        shown_result = 'id=' + str(self.request.id) + ' src=' + str(
+                            self.src_ip) + ' primary=' + str(primary_answer) + ' remain=' + str(remain_answers)
                         # self.lock.acquire()
                         # dump_info(shown_result, raw=True)
                         # dump_info('', raw=True)
                         # self.lock.release()
-                        logger.info(shown_result)
-                        logger.info('')
-
+                        logger.info(shown_result + '\n')
                     else:
                         # self.lock.acquire()
                         # dump_info('src ' + str(self.src_ip), raw=True)
                         # dump_info(response, raw=True)
                         # dump_info('', raw=True)
                         # self.lock.release()
-                        logger.info('src ' + str(self.src_ip)+'\n'+str(response))
-                        # logger.info(response)
-                        logger.info('')
-            if self.same_id is False:
+                        logger.info(
+                            '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n'
+                            + 'src ' + str(self.src_ip) + '\n'
+                            + str(response) + '\n')
+            if self.same_id == False:
                 self.request.id = dns.entropy.random_16()
             if i != self.requests_per_thread - 1:
                 time.sleep(self.interval)
@@ -259,7 +241,7 @@ class ThreadingDnsQuery(threading.Thread):
 
     def run(self):
 
-        if self.reuse_session is False:
+        if self.reuse_session == False:
             self._query_standard()
         else:
             self._query_reuse()
@@ -270,7 +252,7 @@ class DnsQuery():
     def __init__(self, dns_server, dns_server_port=53):
         self.dns_server = dns_server
         self.dns_server_port = dns_server_port
-        self.flag_type_dict = dns_Flags._by_text
+        self.flag_type_dict = dns.flags._by_text
         self.record_type_dict = dns.rdatatype._by_text
         self.record_class_dict = dns.rdataclass._by_text
         self.rcode_reason_dict = dns.rcode._by_value
@@ -292,24 +274,24 @@ class DnsQuery():
 
     def _request_flag(self, recurse):
         request_flags = 0
-        if recurse is not None:
-            if recurse is True:
+        if recurse != None:
+            if recurse == True:
                 request_flags |= self.flag_type_dict['RD']
         else:
-            if self.dig_dopt_recurse is True:
+            if self.dig_dopt_recurse == True:
                 request_flags |= self.flag_type_dict['RD']
-        if self.dig_dopt_aaonly is True:
+        if self.dig_dopt_aaonly == True:
             request_flags |= self.flag_type_dict['AA']
-        if self.dig_dopt_adflag is True:
+        if self.dig_dopt_adflag == True:
             request_flags |= self.flag_type_dict['AD']
-        if self.dig_dopt_cdflag is True:
+        if self.dig_dopt_cdflag == True:
             request_flags |= self.flag_type_dict['CD']
         return request_flags
 
     def _request_domain(self, domain_name):
-        my_domain = dns_Name.from_text(domain_name)
+        my_domain = dns.name.from_text(domain_name)
         if not my_domain.is_absolute():
-            my_domain = my_domain.concatenate(dns_Name.root)
+            my_domain = my_domain.concatenate(dns.name.root)
         return my_domain
 
     def _assign_ip(self, ip_list):
@@ -338,14 +320,14 @@ class DnsQuery():
 
     def _is_thread_alive(self):
         for i in self.threads_list:
-            if i.isAlive() is True:
+            if i.isAlive() == True:
                 return True
         return False  # All dead
 
     def _start_thread(self):
         for i in self.threads_list:
             i.start()
-        if self.monitor is not None:
+        if self.monitor != None:
             self.monitor.start()
 
     def _wait_for_thread(self):
@@ -353,7 +335,7 @@ class DnsQuery():
         for i in self.threads_list:
             i.join(timeout=31536000)
 
-        if self.monitor is not None:
+        if self.monitor != None:
             self.monitor.join(timeout=31536000)
 
     def _generate_request(self, record_type, rdclass, domain_name, recurse):
@@ -364,11 +346,11 @@ class DnsQuery():
             rdclass = 'IN'
 
         my_domain = self._request_domain(domain_name)
-        request = dns_Message.make_query(my_domain, self.record_type_dict[record_type],
+        request = dns.message.make_query(my_domain, self.record_type_dict[record_type],
                                          rdclass=self.record_class_dict[rdclass])
 
         request.flags = self._request_flag(recurse)
-        request.find_rrset(request.additional, dns_Name.root, ADDITIONAL_RDCLASS, dns.rdatatype.OPT,
+        request.find_rrset(request.additional, dns.name.root, ADDITIONAL_RDCLASS, dns.rdatatype.OPT,
                            create=True, force_unique=True)
         return request
 
@@ -395,33 +377,26 @@ class DnsQuery():
         if src_port_list == []:
             src_port_list = None
 
-        if src_ip_list is not None:
+        if src_ip_list != None:
             # dump_info('Here you can run the look up command from GLB:')
+            logger.info('Here you can run the look up command from GLB:\n')
             # dump_info('', raw=True)
-            logger.info('Here you can run the look up command from GLB:')
-            logger.info('')
-            cmdString = ''
+            exeCmdString = ''
             for ip_addr in src_ip_list:
-                cmdString = cmdString + '\n' + 'execute glb-dprox-lookup ' + ip_addr
+                exeCmdString = exeCmdString+'\n'+'execute glb-dprox-lookup ' + ip_addr
                 # dump_info('execute glb-dprox-lookup ' + ip_addr, raw=True)
-            logger.info(cmdString)
-
-            logger.info('')
             # dump_info('', raw=True)
+            logger.info(exeCmdString+'\n')
             self._assign_ip(src_ip_list)
 
-        if src_ip_list is None:
-            if src_port_list is not None:
+        if src_ip_list == None:
+            if src_port_list != None:
                 # dump_info('Generating threads...')
                 logger.info('Generating threads...')
                 thread_num = 0
                 for i in src_port_list:
-                    self._new_thread('Thread-' + str(thread_num),
-                                     self._generate_request(record_type,
-                                                            rdclass,
-                                                            domain_name,
-                                                            recurse),
-                                     src_port=i)
+                    self._new_thread('Thread-' + str(thread_num), self._generate_request(
+                        record_type, rdclass, domain_name, recurse), src_port=i)
                     thread_num += 1
 
             else:
@@ -432,7 +407,7 @@ class DnsQuery():
                         'Thread-' + str(i), self._generate_request(record_type, rdclass, domain_name, recurse))
 
         else:
-            if src_port_list is not None:
+            if src_port_list != None:
                 # dump_info('Generating threads...')
                 logger.info('Generating threads...')
                 thread_num = 0
@@ -452,7 +427,8 @@ class DnsQuery():
                             record_type, rdclass, domain_name, recurse), src_ip=j)
                         thread_num += 1
         self.monitor = None
-        if self.show_statistics is True:
+        if self.show_statistics == True:
             self.monitor = answer_stat(
                 self.threads_list, self.public_stat_dict, self.threading_lock)
             self.monitor.setDaemon(True)
+

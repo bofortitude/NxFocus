@@ -70,7 +70,7 @@ Notes:
                                  help='Set the ad bit once it is taken.')
         self.parser.add_argument('--cdflag', dest='cdflag', action='store_true',
                                  help='Set the cd bit once it is taken.')
-        self.parser.add_argument('--debug', dest='debug', action='store_false',
+        self.parser.add_argument('--debug', dest='debug', action='store_true',
                                 help='Enable debug mode.')
 
         self.args, self.remaining = self.parser.parse_known_args(
