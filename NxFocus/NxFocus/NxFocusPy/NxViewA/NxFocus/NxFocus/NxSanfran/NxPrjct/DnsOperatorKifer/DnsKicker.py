@@ -73,6 +73,7 @@ Notes:
         self.parser.add_argument('--debug', dest='debug', action='store_true',
                                 help='Enable debug mode.')
 
+
         self.args, self.remaining = self.parser.parse_known_args(
             self.sysArgsList)
 
@@ -96,6 +97,7 @@ Notes:
         self.adflag = self.args.adflag
         self.cdflag = self.args.cdflag
         self.debug = self.args.debug
+
 
 
         self.dns_server = self.remaining[0]

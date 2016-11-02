@@ -32,9 +32,9 @@ def checkConnBeijing(argsList):
     from NxSanfran.NxPrjct.iMer.CheckConnectivity.CheckConnToBeijing import mainEn
     mainEn()
 
-def Trial(argsList):
+def Trial(*argsList):
     from NxSanfran.NxPrjct.Labs.Trial import enMain
-    enMain(argsList)
+    enMain(*argsList)
 
 
 
